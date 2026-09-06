@@ -1,0 +1,11 @@
+node_modules
+dist
+artifact
+tsconfig.tsbuildinfo
+
+# The database ships with the repo — it holds the demonstration exam and the
+# edits made while building it, nothing else. Its WAL sidecars are transient.
+*.sqlite-wal
+*.sqlite-shm
+
+.DS_Store

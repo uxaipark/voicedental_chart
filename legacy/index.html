@@ -1,0 +1,1377 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>html{color-scheme:light dark}body{margin:0;font:14px system-ui}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Perio Chart Workstation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --ground:#EEF1F5; --surface:#FFFFFF; --surface-2:#F7F9FC; --surface-3:#EDF1F6;
+  --line:#DCE2EA; --line-2:#C2CBD6; --line-3:#9FAcB9;
+  --ink:#0F1720; --ink-2:#4B5867; --ink-3:#7B8896;
+  --accent:#0F62C4; --accent-ink:#0F62C4; --accent-soft:#E3EDFB;
+  --ok:#1B8A57; --warn:#B8730A; --crit:#BE342A;
+  --bop:#D93A2D; --sup:#E3A008; --plq:#5B87E8; --clc:#8A6C4B; --gi:#7E57C2;
+  --gum:#DE4A3F; --cal-line:#2E6FB8; --pd-fill:rgba(214,74,62,.15);
+  --rule:#E4E9EF; --rule-5:#CFD7E0;
+  --enamel:#FFFDF7; --enamel-2:#EDE0C8; --root:#FAF2E3; --root-2:#E1D1B2; --tooth-line:#9B8E77; --tooth-shadow:#7A6647;
+  --implant:#9AA4B0;
+  --shadow:0 1px 2px rgba(15,23,32,.06),0 6px 18px rgba(15,23,32,.05);
+  --cw:18px; --gut:124px; --gap:22px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0B1017; --surface:#131A23; --surface-2:#18202B; --surface-3:#1E2732;
+    --line:#27313E; --line-2:#3A4756; --line-3:#4E5C6D;
+    --ink:#E7ECF3; --ink-2:#A5B1C0; --ink-3:#6F7D8D;
+    --accent:#5EA2FF; --accent-ink:#8FC0FF; --accent-soft:#152740;
+    --ok:#43B683; --warn:#DFA13C; --crit:#E4695C;
+    --bop:#E4695C; --sup:#E0AA3E; --plq:#7FA3F5; --clc:#B08E67; --gi:#A88BE0;
+    --gum:#E4574B; --cal-line:#6BA6E8; --pd-fill:rgba(228,105,92,.20);
+    --rule:#222C38; --rule-5:#33404E;
+    --enamel:#F7F1E6; --enamel-2:#E3D8C4; --root:#F0E8D9; --root-2:#D8CAB0; --tooth-line:#8A7C64; --tooth-shadow:#000000;
+    --implant:#7E8896;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.32);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0B1017; --surface:#131A23; --surface-2:#18202B; --surface-3:#1E2732;
+  --line:#27313E; --line-2:#3A4756; --line-3:#4E5C6D;
+  --ink:#E7ECF3; --ink-2:#A5B1C0; --ink-3:#6F7D8D;
+  --accent:#5EA2FF; --accent-ink:#8FC0FF; --accent-soft:#152740;
+  --ok:#43B683; --warn:#DFA13C; --crit:#E4695C;
+  --bop:#E4695C; --sup:#E0AA3E; --plq:#7FA3F5; --clc:#B08E67; --gi:#A88BE0;
+  --gum:#E4574B; --cal-line:#6BA6E8; --pd-fill:rgba(228,105,92,.20);
+  --rule:#222C38; --rule-5:#33404E;
+  --enamel:#F7F1E6; --enamel-2:#E3D8C4; --root:#F0E8D9; --root-2:#D8CAB0; --tooth-line:#8A7C64; --tooth-shadow:#000000;
+  --implant:#7E8896;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.32);
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;text-wrap:balance}
+button{font:inherit;color:inherit}
+.eyebrow{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.mono{font-family:"IBM Plex Mono","SFMono-Regular",Menlo,monospace;font-variant-numeric:tabular-nums}
+
+/* ---------- shell ---------- */
+.topbar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px 18px;
+  background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:30}
+.brand{display:flex;align-items:baseline;gap:9px}
+.brand strong{font-size:15px;font-weight:700;letter-spacing:-.01em}
+.brand span{font-size:11px;color:var(--ink-3)}
+.spacer{flex:1}
+.tabs{display:flex;gap:2px;background:var(--surface-3);padding:3px;border-radius:7px}
+.tabs button{border:0;background:transparent;padding:5px 13px;border-radius:5px;font-size:12px;font-weight:500;color:var(--ink-2);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow);font-weight:600}
+.tabs button:focus-visible,.chip:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+.exambar{display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:8px 18px;
+  background:var(--surface-2);border-bottom:1px solid var(--line);font-size:12px}
+.exambar .sep{width:1px;height:18px;background:var(--line-2)}
+.exambar label{color:var(--ink-3);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-right:5px}
+.field{display:flex;align-items:center}
+select,input[type="text"],input[type="date"]{font:inherit;font-size:12px;background:var(--surface);color:var(--ink);
+  border:1px solid var(--line-2);border-radius:5px;padding:4px 7px}
+select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:0}
+.rowtoggles{display:flex;gap:3px;flex-wrap:wrap}
+
+.main{display:grid;grid-template-columns:232px minmax(0,1fr) 292px;gap:14px;padding:14px 18px 8px;align-items:start}
+@media (max-width:1560px){.main{grid-template-columns:220px minmax(0,1fr)}.rail-r{grid-column:1/-1}}
+@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.rail-l,.rail-r{grid-column:auto}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:9px;box-shadow:var(--shadow)}
+.card + .card{margin-top:12px}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line)}
+.card-h h3{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+.card-b{padding:11px 12px}
+
+.pt-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.pt-sub{font-size:11px;color:var(--ink-3);margin-top:1px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin-top:10px;font-size:12px}
+.kv dt{color:var(--ink-3)} .kv dd{margin:0;text-align:right;font-weight:500}
+.alerts{margin-top:11px;padding:8px 9px;border-radius:7px;background:color-mix(in srgb,var(--crit) 8%,transparent);
+  border:1px solid color-mix(in srgb,var(--crit) 26%,transparent)}
+.alerts .eyebrow{color:var(--crit)}
+.alerts ul{margin:5px 0 0;padding-left:15px;font-size:11.5px;color:var(--ink-2)}
+.alerts b{color:var(--crit);font-weight:600}
+.legend{display:flex;flex-direction:column;gap:6px;font-size:11.5px}
+.legend-row{display:flex;align-items:center;gap:8px}
+.swatch{width:22px;height:10px;border-radius:2px;flex:none}
+.dotk{width:9px;height:9px;border-radius:50%;flex:none}
+.legend .lg-note{color:var(--ink-3);margin-left:auto;font-size:10.5px}
+.hist{display:flex;flex-direction:column}
+.hist button{display:flex;align-items:center;gap:8px;border:0;background:transparent;text-align:left;
+  padding:5px 4px;border-bottom:1px solid var(--line);cursor:pointer;font-size:11.5px;width:100%}
+.hist button:hover{background:var(--accent-soft)}
+.hist .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.hist .who{margin-left:auto;color:var(--ink-3);font-size:10.5px}
+
+/* ---------- chart ---------- */
+.chartwrap{overflow-x:auto;padding:2px 0 8px}
+.chart{width:max-content;min-width:100%}
+.chart:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.bandlabel{display:flex;align-items:center;gap:9px;margin:12px 0 4px;padding-left:2px}
+.bandlabel .rail{width:3px;height:13px;border-radius:2px;background:var(--accent)}
+.bandlabel .bl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
+.bandlabel .hint{font-size:10px;color:var(--ink-3);letter-spacing:.03em}
+
+.grid{display:grid;grid-template-columns:var(--gut) repeat(24,var(--cw)) var(--gap) repeat(24,var(--cw))}
+.gapcell{background:transparent}
+.rl{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding-right:9px;
+  font-size:10.5px;font-weight:600;color:var(--ink-2);letter-spacing:.01em;text-align:right;
+  border-right:1px solid var(--line-2);line-height:1.15}
+.rl .u{font-weight:400;color:var(--ink-3);font-size:9.5px;flex:none}
+
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-family:"IBM Plex Mono",Menlo,monospace;font-size:12px;font-variant-numeric:tabular-nums;
+  background:var(--surface);cursor:pointer;position:relative;user-select:none;color:var(--ink);height:22px}
+.cell.mk{height:15px}
+.cell.tooth-first{border-left:1px solid var(--line-2)}
+.cell.tooth-last{border-right:1px solid var(--line-2)}
+.grid.rowtop{border-top:1px solid var(--line-2)}
+.cell.na{background:var(--surface-3);cursor:default;color:transparent}
+.cell.gone{background:repeating-linear-gradient(135deg,var(--surface-3),var(--surface-3) 4px,var(--surface-2) 4px,var(--surface-2) 8px);cursor:default;color:transparent}
+.cell.span3{grid-column:span 3}
+.cell:hover:not(.na):not(.gone){background:var(--accent-soft)}
+.cell.cur{box-shadow:inset 0 0 0 2px var(--accent);background:var(--accent-soft);z-index:2}
+.cell.v-warn{color:var(--warn);font-weight:600}
+.cell.v-crit{color:var(--crit);font-weight:700}
+.cell.v-neg{color:var(--cal-line)}
+.cell.empty{color:var(--ink-3)}
+.cell i.mark{width:8px;height:8px;border-radius:50%;display:block}
+.m-bop{background:var(--bop)} .m-sup{background:var(--sup)}
+.m-plq{background:var(--plq)} .m-clc{background:var(--clc)} .m-gi{background:var(--gi)}
+.cell.notec{grid-column:span 3;height:20px;font-family:"IBM Plex Sans",sans-serif;font-size:10.5px;
+  color:var(--ink-2);padding:0 4px;justify-content:flex-start;overflow:hidden;white-space:nowrap;text-align:left}
+.cell.notec:focus{outline:2px solid var(--accent);outline-offset:-2px;overflow:visible;z-index:5;background:var(--surface)}
+
+.numcell{grid-column:span 3;height:26px;display:flex;align-items:center;justify-content:center;gap:4px;
+  font-family:"IBM Plex Mono",Menlo,monospace;font-size:12px;font-weight:600;
+  border-right:1px solid var(--line);background:var(--surface-2);cursor:pointer;
+  border-top:1px solid var(--line-3);border-bottom:1px solid var(--line-3)}
+.numcell:hover{background:var(--accent-soft)}
+.numcell.off{color:var(--ink-3);text-decoration:line-through}
+.numcell .tag{font-family:"IBM Plex Sans",sans-serif;font-size:8px;font-weight:700;letter-spacing:.05em;
+  padding:0 3px;border-radius:3px;background:var(--accent-soft);color:var(--accent-ink)}
+.numcell.sel{box-shadow:inset 0 0 0 2px var(--accent)}
+.toothrow{grid-column:span 24;background:var(--surface);border-left:1px solid var(--line-2);border-right:1px solid var(--line-2)}
+.toothrow svg{display:block}
+
+.summary{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;
+  margin:16px 0 4px;border:1px solid var(--line-2);border-radius:7px;background:var(--surface-2);overflow:hidden}
+.summary div{padding:7px 22px;font-size:12px;border-right:1px solid var(--line)}
+.summary div:last-child{border-right:0}
+.summary b{font-family:"IBM Plex Mono",Menlo,monospace;font-weight:600;font-size:14px;margin-left:5px}
+.summary .hot b{color:var(--crit)}
+
+/* ---------- right rail ---------- */
+.seg{display:flex;gap:3px;flex-wrap:wrap}
+.chip{border:1px solid var(--line-2);background:var(--surface-2);border-radius:6px;padding:4px 8px;
+  font-size:11.5px;font-weight:500;cursor:pointer;line-height:1.3}
+.chip:hover{border-color:var(--accent);color:var(--accent-ink)}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.chip.k-bop.on{background:var(--bop);border-color:var(--bop);color:#fff}
+.chip.k-sup.on{background:var(--sup);border-color:var(--sup);color:#241a00}
+.chip.k-plq.on{background:var(--plq);border-color:var(--plq);color:#fff}
+.chip.k-clc.on{background:var(--clc);border-color:var(--clc);color:#fff}
+.chip.k-gi.on{background:var(--gi);border-color:var(--gi);color:#fff}
+.chip.sm{padding:3px 0;font-size:11px;min-width:25px;text-align:center;justify-content:center}
+.insp-site{display:flex;align-items:baseline;gap:8px}
+.insp-site .t{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.insp-site .s{font-size:11.5px;color:var(--ink-2)}
+.triad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 2px}
+.tri{border:1px solid var(--line);border-radius:7px;padding:6px 4px;text-align:center;background:var(--surface-2)}
+.tri .lab{font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--ink-3)}
+.tri .val{font-family:"IBM Plex Mono",Menlo,monospace;font-size:19px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
+.tri.warn .val{color:var(--warn)} .tri.crit .val{color:var(--crit)}
+.fieldrow{display:flex;align-items:flex-start;gap:8px;margin-top:9px}
+.fieldrow > .eyebrow{width:60px;flex:none;padding-top:5px;line-height:1.2}
+.cmd{display:flex;gap:6px;align-items:center}
+.cmd input{flex:1;font-family:"IBM Plex Mono",Menlo,monospace;font-size:12px}
+.cmd button{border:1px solid var(--accent);background:var(--accent);color:#fff;border-radius:5px;padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer}
+.log{margin-top:9px;max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:3px}
+.log div{font-family:"IBM Plex Mono",Menlo,monospace;font-size:10.5px;color:var(--ink-2);
+  padding:3px 6px;border-radius:4px;background:var(--surface-2);border-left:2px solid var(--line-2)}
+.log div.err{border-left-color:var(--crit);color:var(--crit)}
+.log div.ok{border-left-color:var(--ok)}
+.grammar{margin-top:9px;font-size:10.5px;color:var(--ink-3);line-height:1.75}
+.grammar code{font-family:"IBM Plex Mono",Menlo,monospace;background:var(--surface-3);padding:1px 4px;border-radius:3px;color:var(--ink-2)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:7px;overflow:hidden;border:1px solid var(--line)}
+.stat{background:var(--surface);padding:7px 9px}
+.stat .lab{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.stat .val{font-family:"IBM Plex Mono",Menlo,monospace;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.25}
+.stat .val small{font-size:10px;font-weight:500;color:var(--ink-3);margin-left:2px}
+.stat.hot .val{color:var(--crit)}
+.bar{height:4px;border-radius:3px;background:var(--surface-3);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--bop);border-radius:3px}
+.dx{display:flex;gap:7px;align-items:stretch;margin-top:10px;flex-wrap:wrap}
+.dxbox{flex:1;min-width:92px;border:1px solid var(--line);border-radius:7px;padding:6px 9px;background:var(--surface-2)}
+.dxbox .lab{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.dxbox .val{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.dxbox .val small{font-size:10px;color:var(--ink-3);font-weight:500}
+.note{font-size:10.5px;color:var(--ink-3);margin-top:8px;line-height:1.55}
+.findings{display:flex;flex-direction:column;max-height:230px;overflow-y:auto}
+.finding{display:flex;align-items:center;gap:8px;padding:5px 3px;border-bottom:1px solid var(--line);cursor:pointer}
+.finding:hover{background:var(--accent-soft)}
+.finding .tn{font-family:"IBM Plex Mono",Menlo,monospace;font-weight:600;width:26px;flex:none;font-size:12px}
+.finding .desc{flex:1;font-size:11.5px;color:var(--ink-2)}
+.finding .sev{width:7px;height:7px;border-radius:50%;flex:none}
+
+/* ---------- reference ---------- */
+.ref{margin:6px 18px 30px}
+.refwrap{overflow-x:auto}
+table.spec{border-collapse:collapse;width:100%;min-width:860px;font-size:12px}
+table.spec th,table.spec td{text-align:left;padding:7px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+table.spec th{font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);
+  border-bottom:1px solid var(--line-2);white-space:nowrap}
+table.spec td.f{font-weight:600;white-space:nowrap}
+table.spec td.r{font-family:"IBM Plex Mono",Menlo,monospace;white-space:nowrap;color:var(--ink-2)}
+table.spec td.n{color:var(--ink-2)}
+.grp td{background:var(--surface-3);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+table.spec tbody tr:hover td:not(.grp){background:var(--surface-2)}
+.foot{margin:0 18px 30px;font-size:11px;color:var(--ink-3);line-height:1.65;max-width:82ch}
+.foot a{color:var(--accent-ink)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><strong>Perio Chart</strong><span>Six-point periodontal examination · 32 teeth</span></div>
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true">Perio chart</button>
+    <button role="tab" aria-selected="false">Implant chart</button>
+    <button role="tab" aria-selected="false">Restorative</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="field"><label for="numsys">Numbering</label>
+    <select id="numsys"><option value="uni">Universal 1–32</option><option value="fdi">FDI 18–48</option><option value="palmer">Palmer UR/UL/LL/LR</option></select>
+  </div>
+  <div class="field"><label for="dispmode">View</label>
+    <select id="dispmode"><option value="teeth">Teeth + graph</option><option value="numbers">Numbers only</option></select>
+  </div>
+  <button class="chip" id="btnCopy">Copy exam JSON</button>
+</header>
+
+<div class="exambar">
+  <div class="field"><label for="examdate">Exam</label><input type="date" id="examdate" value="2026-09-06"></div>
+  <div class="field"><label for="prov">Provider</label>
+    <select id="prov"><option>RDH J. Sandoval</option><option>Dr. K. Rossi</option><option>RDH M. Okafor</option></select></div>
+  <div class="field"><label for="probe">Probe</label>
+    <select id="probe"><option>UNC-15</option><option>Williams</option><option>PCP-11</option><option>Nabers (furcation)</option></select></div>
+  <div class="field"><label for="seqsel">Sequence</label>
+    <select id="seqsel"><option value="serpentine">Serpentine · 4 passes</option><option value="screen">Left to right</option></select></div>
+  <div class="sep"></div>
+  <label style="margin:0">Optional rows</label>
+  <div class="rowtoggles" id="rowToggles"></div>
+  <div class="spacer"></div>
+  <span class="mono" style="font-size:11px;color:var(--ink-2)">GM + = recession apical to CEJ · CAL = PD + GM</span>
+</div>
+
+<div class="main">
+  <aside class="rail-l">
+    <section class="card"><div class="card-b">
+      <div class="pt-name">Raymora, Julia M.</div>
+      <div class="pt-sub">Chart 1023-44871 · 42 y · Female</div>
+      <dl class="kv">
+        <dt>Last perio</dt><dd class="mono">2025-03-11</dd>
+        <dt>Recall</dt><dd>3-mo perio maint.</dd>
+        <dt>Smoking</dt><dd>8 cig/day · 14 yr</dd>
+        <dt>HbA1c</dt><dd class="mono">7.4 %</dd>
+        <dt>Referring</dt><dd>Dr. K. Rossi</dd>
+      </dl>
+      <div class="alerts">
+        <div class="eyebrow">Medical alert</div>
+        <ul>
+          <li>Allergy — <b>Penicillin</b>, latex</li>
+          <li>Type 2 diabetes, uncontrolled</li>
+          <li>Anticoagulant — apixaban 5 mg BID</li>
+        </ul>
+      </div>
+    </div></section>
+
+    <section class="card">
+      <div class="card-h"><h3>Legend</h3></div>
+      <div class="card-b"><div class="legend">
+        <div class="legend-row"><span class="swatch" style="background:var(--pd-fill);border:1px solid var(--gum)"></span>Pocket zone<span class="lg-note">PD</span></div>
+        <div class="legend-row"><span class="swatch" style="background:var(--gum)"></span>Gingival margin<span class="lg-note">GM</span></div>
+        <div class="legend-row"><span class="swatch" style="background:var(--cal-line)"></span>Attachment level<span class="lg-note">CAL</span></div>
+        <div class="legend-row"><span class="swatch" style="background:transparent;border-top:2px dashed var(--ink-3);height:0"></span>CEJ · 1 mm rule</div>
+        <div class="legend-row" style="margin-top:2px"><span class="dotk m-bop"></span>Bleeding on probing</div>
+        <div class="legend-row"><span class="dotk m-sup"></span>Suppuration</div>
+        <div class="legend-row"><span class="dotk m-plq"></span>Plaque</div>
+        <div class="legend-row"><span class="dotk m-clc"></span>Calculus</div>
+        <div class="legend-row"><span class="mono" style="color:var(--gi);font-weight:600">0–3</span>Gingival index<span class="lg-note">Löe</span></div>
+        <div class="legend-row" style="margin-top:4px">▲ furcation I–II&ensp;▲ III<span class="lg-note">Glickman</span></div>
+        <div class="legend-row"><span style="color:var(--ok)">▪ ≤3 mm</span><span style="color:var(--warn)">▪ 4–5 mm</span><span style="color:var(--crit)">▪ ≥6 mm</span></div>
+      </div></div>
+    </section>
+
+    <section class="card">
+      <div class="card-h"><h3>Exam history</h3></div>
+      <div class="card-b hist">
+        <button><span class="dot" style="background:var(--accent)"></span>2026-09-06 · today<span class="who">Sandoval</span></button>
+        <button><span class="dot"></span>2025-03-11<span class="who">Sandoval</span></button>
+        <button><span class="dot"></span>2024-08-27<span class="who">Okafor</span></button>
+        <button><span class="dot" style="background:var(--warn)"></span>2024-02-14 · SRP re-eval<span class="who">Rossi</span></button>
+        <button><span class="dot"></span>2023-06-02<span class="who">Sandoval</span></button>
+      </div>
+    </section>
+  </aside>
+
+  <section class="card">
+    <div class="card-h"><h3>Full-mouth six-point chart</h3>
+      <span class="eyebrow">click a cell · 0–9 value · B P C S mark · ← → ↑ ↓ move · Enter next</span></div>
+    <div class="card-b" style="padding:4px 12px 2px">
+      <div class="chartwrap"><div class="chart" id="chart" tabindex="0"></div></div>
+    </div>
+  </section>
+
+  <aside class="rail-r">
+    <section class="card">
+      <div class="card-h"><h3>Site inspector</h3><span class="eyebrow" id="inspSurf">—</span></div>
+      <div class="card-b" id="insp"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h3>Dictation</h3><span class="eyebrow">typed or spoken</span></div>
+      <div class="card-b">
+        <div class="cmd"><input type="text" id="cmdIn" placeholder="tooth 30 · 5 4 6 · bleeding · furcation 2" autocomplete="off"><button id="cmdGo">Run</button></div>
+        <div class="log" id="cmdLog"></div>
+        <div class="grammar">
+          <code>546</code> probe triplet · <code>rec 2 1 2</code> recession · <code>b</code> <code>s</code> <code>p</code> <code>c</code> markers<br>
+          <code>mob 2</code> · <code>furc 2</code> · <code>mgj 4</code> · <code>gi 2</code> · <code>tooth 14</code><br>
+          <code>upper palatal</code> · <code>missing</code> · <code>implant</code> · <code>next</code> · <code>back</code>
+        </div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h3>Whole-mouth indices</h3></div>
+      <div class="card-b">
+        <div class="stats" id="stats"></div>
+        <div class="dx" id="dx"></div>
+        <div class="note">Stage is suggested from interdental CAL, PD ≥ 6 mm, furcation, mobility and tooth loss per AAP/EFP 2017. Grade needs the bone-loss/age ratio plus smoking and HbA1c — set it manually.</div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h3>Findings</h3><span class="eyebrow" id="findCount"></span></div>
+      <div class="card-b"><div class="findings" id="findings"></div></div>
+    </section>
+  </aside>
+</div>
+
+<section class="card ref">
+  <div class="card-h"><h3>Recorded data set — US six-point periodontal exam</h3>
+    <span class="eyebrow">every field a complete chart must capture</span></div>
+  <div class="card-b refwrap">
+    <table class="spec">
+      <thead><tr><th>Field</th><th>Granularity</th><th>Range / values</th><th>Convention &amp; why it is recorded</th></tr></thead>
+      <tbody>
+        <tr class="grp"><td colspan="4">Per site — six per tooth (MB · B · DB / ML · L · DL)</td></tr>
+        <tr><td class="f">Gingival margin (GM)</td><td class="r">6 / tooth</td><td class="r">−5 … +12 mm</td><td class="n">Margin position relative to the CEJ. Positive = recession; negative = margin coronal to the CEJ (pseudo-pocket, overgrowth). Sign convention must be fixed before the exam.</td></tr>
+        <tr><td class="f">Probing depth (PD)</td><td class="r">6 / tooth</td><td class="r">0 … 15 mm</td><td class="n">Free gingival margin to the base of the sulcus, UNC-15 probe, rounded up to the whole millimetre.</td></tr>
+        <tr><td class="f">Attachment level (CAL)</td><td class="r">6 / tooth</td><td class="r">computed</td><td class="n">Read-only: PD + GM. The measure that defines attachment loss and drives AAP staging — never typed by hand.</td></tr>
+        <tr><td class="f">Bleeding on probing</td><td class="r">6 / tooth</td><td class="r">yes / no</td><td class="n">Scored within 30 s of probing. Full-mouth BOP % is the standard inflammation index; ≥ 10 % meets the gingivitis case definition.</td></tr>
+        <tr><td class="f">Suppuration</td><td class="r">6 / tooth</td><td class="r">yes / no</td><td class="n">Exudate on pressure — marks an active lesion and raises urgency independently of depth.</td></tr>
+        <tr><td class="f">Plaque</td><td class="r">6 / tooth</td><td class="r">yes / no</td><td class="n">Supragingival biofilm; produces the plaque index (PI %) that anchors the home-care discussion.</td></tr>
+        <tr><td class="f">Calculus</td><td class="r">6 / tooth</td><td class="r">yes / no</td><td class="n">Sub- or supragingival deposit felt on probing. Supports quadrant SRP justification (D4341 / D4342).</td></tr>
+        <tr><td class="f">Gingival index</td><td class="r">6 / tooth</td><td class="r">0 · 1 · 2 · 3</td><td class="n">Löe &amp; Silness. Optional, but the only field that separates colour/oedema change from frank bleeding.</td></tr>
+        <tr><td class="f">MGJ / keratinized width</td><td class="r">1 / surface *</td><td class="r">0 … 12 mm</td><td class="n">Gingival margin to mucogingival junction. Maxillary facial and mandibular facial + lingual. Under 2 mm flags a mucogingival defect.</td></tr>
+        <tr class="grp"><td colspan="4">Per tooth</td></tr>
+        <tr><td class="f">Mobility</td><td class="r">1 / tooth</td><td class="r">0 · 1 · 2 · 3</td><td class="n">Miller scale, read from the facial. Class 3 (horizontal + vertical) is a stage-IV complexity factor.</td></tr>
+        <tr><td class="f">Furcation</td><td class="r">1–3 / tooth</td><td class="r">0 · I · II · III · IV</td><td class="n">Glickman class, Nabers probe. Maxillary molars: buccal, mesiopalatal, distopalatal. Mandibular molars: buccal, lingual. Maxillary first premolars: mesial, distal.</td></tr>
+        <tr><td class="f">Recession class</td><td class="r">1 / tooth</td><td class="r">Miller I–IV · Cairo RT1–3</td><td class="n">Classifies the defect for root-coverage prognosis; Cairo grades it by interproximal attachment loss rather than by the MGJ.</td></tr>
+        <tr><td class="f">Tooth status</td><td class="r">1 / tooth</td><td class="r">present · missing · implant</td><td class="n">Missing teeth drop out of every index; implants are probed but diagnosed separately (peri-implant mucositis vs peri-implantitis).</td></tr>
+        <tr><td class="f">Restoration flag</td><td class="r">1 / tooth</td><td class="r">crown · pontic</td><td class="n">Crown margins displace the CEJ reference; pontics carry no probing sites at all.</td></tr>
+        <tr><td class="f">Tooth note</td><td class="r">1 / tooth</td><td class="r">free text</td><td class="n">Fracture, mucogingival defect, endo-perio lesion, open contact — anything that changes the plan but has no numeric field.</td></tr>
+        <tr class="grp"><td colspan="4">Per exam</td></tr>
+        <tr><td class="f">Exam metadata</td><td class="r">1 / exam</td><td class="r">date · provider · probe · sequence</td><td class="n">Required to compare against prior exams and to support the insurance narrative.</td></tr>
+        <tr><td class="f">Indices</td><td class="r">1 / exam</td><td class="r">computed</td><td class="n">Mean PD, mean CAL, BOP %, PI %, and site counts ≥ 4 / ≥ 5 / ≥ 6 mm — the figures that show change over time.</td></tr>
+        <tr><td class="f">AAP 2017 diagnosis</td><td class="r">1 / exam</td><td class="r">Stage I–IV · Grade A–C · extent</td><td class="n">Stage from severity + complexity, grade from bone-loss/age ratio with smoking and HbA1c, extent from the share of involved sites (under 30 % = localized).</td></tr>
+      </tbody>
+    </table>
+    <p class="note">* MGJ is charted on maxillary facial and on mandibular facial and lingual surfaces — there is no maxillary palatal mucogingival junction to measure.</p>
+  </div>
+</section>
+
+<p class="foot">Sample chart: all 32 teeth charted, including partially erupted third molars and an implant at #19 — the stage, grade and extent shown are recomputed from whatever is on the chart. Demonstration data — not a patient record. Field set and layout compiled from the <a href="https://www.opendental.com/manual/perio.html">Open Dental perio chart specification</a>, <a href="https://www.periodontalchart-online.com/?lang=en-gb">periodontalchart-online</a>, and the AAP/EFP 2017 classification.</p>
+
+<script>
+"use strict";
+/* ===================== geometry constants ===================== */
+var COL=54, SITE=18, TH=112, S=3.3, HALF_W=COL*8;
+var CEJ_UP=72, CEJ_DN=40;   /* CEJ y when roots point up / down */
+
+var UPPER=[],LOWER=[];
+for(var i=1;i<=16;i++)UPPER.push(i);
+for(var j=32;j>=17;j--)LOWER.push(j);
+var MOL_U=[1,2,3,14,15,16], MOL_L=[17,18,19,30,31,32], PM1_U=[5,12];
+function has(a,v){return a.indexOf(v)>=0;}
+function isUpper(n){return n<=16;}
+
+var FDI={1:18,2:17,3:16,4:15,5:14,6:13,7:12,8:11,9:21,10:22,11:23,12:24,13:25,14:26,15:27,16:28,
+         17:38,18:37,19:36,20:35,21:34,22:33,23:32,24:31,25:41,26:42,27:43,28:44,29:45,30:46,31:47,32:48};
+function quadLabel(n){
+  var f=FDI[n], q=Math.floor(f/10), t=f%10;
+  return ['UR','UL','LL','LR'][q-1]+t;
+}
+var numsys='uni';
+function toothLabel(n){ return numsys==='fdi'?FDI[n]:(numsys==='palmer'?quadLabel(n):n); }
+
+function anat(n){
+  var t,roots,cw,ch,rl,cerv;
+  if(has(MOL_U,n)||has(MOL_L,n)){
+    t='molar'; roots=has(MOL_U,n)?3:2;
+    var third=(n===1||n===16||n===17||n===32), first=(n===3||n===14||n===19||n===30);
+    cw=third?33:(first?39:36); ch=25; rl=third?38:44; cerv=cw*0.82;
+  }else if(n===4||n===5||n===12||n===13||n===20||n===21||n===28||n===29){
+    t='premolar'; roots=has(PM1_U,n)?2:1;
+    cw=26; ch=27; rl=isUpper(n)?47:50; cerv=cw*0.80;
+  }else if(n===6||n===11||n===22||n===27){
+    t='canine'; roots=1; cw=isUpper(n)?25:23; ch=isUpper(n)?36:35; rl=isUpper(n)?60:57; cerv=cw*0.74;
+  }else{
+    t='incisor'; roots=1;
+    var central=(n===8||n===9||n===24||n===25);
+    if(isUpper(n)){cw=central?26:21; ch=34; rl=central?49:47;}
+    else{cw=central?17:19; ch=30; rl=45;}
+    cerv=cw*0.72;
+  }
+  return {type:t,roots:roots,cw:cw,ch:ch,rl:rl,cerv:cerv};
+}
+function furcSites(n,surf){
+  if(has(MOL_U,n)) return surf==='B'?['C']:['M','D'];
+  if(has(MOL_L,n)) return ['C'];
+  if(has(PM1_U,n)&&surf==='B') return ['M','D'];
+  return [];
+}
+function hasMgj(n,surf){ return surf==='B' || !isUpper(n); }
+function order(n){
+  var mesialRight=(n>=1&&n<=8)||(n>=25&&n<=32);
+  return mesialRight?['D','C','M']:['M','C','D'];
+}
+
+/* ===================== state ===================== */
+var chart={};
+function blankSurf(){return {pd:{},gm:{},mgj:{},furc:{},bop:{},sup:{},plq:{},clc:{},gi:{}};}
+for(var n=1;n<=32;n++) chart[n]={n:n,status:'present',crown:false,mobility:null,recClass:'',note:'',B:blankSurf(),L:blankSurf()};
+
+(function seedCase(){
+  var s=20260906;
+  function rnd(){ s=(s*1103515245+12345)&0x7fffffff; return s/0x7fffffff; }
+  function pick(w){ var r=rnd(),a=0; for(var k=0;k<w.length;k++){a+=w[k][1]; if(r<a) return w[k][0];} return w[w.length-1][0]; }
+  chart[19].status='implant';
+  [3,14,30,20].forEach(function(k){ chart[k].crown=true; });
+
+  for(var n=1;n<=32;n++){
+    var t=chart[n]; if(t.status==='missing') continue;
+    var molar=has(MOL_U,n)||has(MOL_L,n);
+    var premolar=(n>=4&&n<=5)||(n>=12&&n<=13)||(n>=20&&n<=21)||(n>=28&&n<=29);
+    ['B','L'].forEach(function(sf){
+      var o=t[sf];
+      order(n).forEach(function(p){
+        var inter=p!=='C';
+        var base=molar?(inter?4:3):(premolar?3:(inter?3:2));
+        var pd=base+pick([[0,.42],[1,.24],[-1,.26],[2,.08]]);
+        if(sf==='L'&&molar) pd+=pick([[0,.72],[1,.28]]);
+        pd=Math.max(1,Math.min(11,pd));
+        var rec=(molar||premolar)?pick([[0,.52],[1,.28],[2,.15],[3,.05]])
+                                 :pick([[0,.62],[1,.24],[2,.10],[-1,.04]]);
+        o.pd[p]=pd; o.gm[p]=rec;
+        var bl = pd>=5?rnd()<0.82 : (pd===4?rnd()<0.55:rnd()<0.18);
+        if(bl) o.bop[p]=true;
+        if(pd>=6&&rnd()<0.30) o.sup[p]=true;
+        if(rnd()<0.34) o.plq[p]=true;
+        if(pd>=4&&rnd()<0.46) o.clc[p]=true;
+        o.gi[p]= bl?pick([[2,.6],[3,.4]]) : pick([[0,.55],[1,.45]]);
+        if(!o.gi[p]) delete o.gi[p];
+      });
+      if(hasMgj(n,sf)) o.mgj.C=Math.max(0,(molar?4:(n>=22&&n<=27?2:3))+pick([[0,.6],[1,.25],[-1,.15]]));
+      furcSites(n,sf).forEach(function(p){ o.furc[p]=pick([[0,.30],[1,.32],[2,.30],[3,.08]]); });
+    });
+    t.mobility = molar?pick([[0,.5],[1,.36],[2,.14]]):pick([[0,.78],[1,.20],[2,.02]]);
+  }
+  function hot(n,sf,p,pd,gm,f){ var o=chart[n][sf]; o.pd[p]=pd; o.gm[p]=gm; o.bop[p]=true; o.gi[p]=3; if(f!==undefined)o.furc[p]=f; }
+  hot(30,'B','D',9,3,2); hot(30,'B','M',8,3); hot(30,'L','D',8,4,2); chart[30].mobility=1;
+  chart[30].note='Endo-perio, distal';
+  hot(3,'B','D',8,3,2); hot(3,'L','D',7,3,2); hot(3,'L','M',7,2,1);
+  hot(14,'B','D',7,2,2); hot(14,'L','D',8,3,3); chart[14].mobility=1; chart[14].note='Class III furc, guarded';
+  hot(31,'B','D',7,2,1); hot(31,'L','C',6,2,1);
+  chart[1].note='Partial eruption, distal pocket';
+  hot(1,'B','D',6,1,1); hot(1,'L','D',6,1);
+  hot(16,'B','D',6,2,1); hot(32,'B','D',6,1); hot(17,'L','D',6,1);
+  chart[6].recClass='Miller I'; chart[27].recClass='Cairo RT1'; chart[22].recClass='Miller II';
+  chart[19].B.pd={M:5,C:4,D:5}; chart[19].B.gm={M:2,C:2,D:2}; chart[19].L.pd={M:5,C:4,D:6}; chart[19].L.gm={M:2,C:2,D:3};
+  chart[19].B.bop={M:true,D:true}; chart[19].L.bop={D:true}; chart[19].mobility=0;
+  chart[19].B.furc={}; chart[19].L.furc={}; chart[19].note='Peri-implantitis, re-eval 6 wk';
+})();
+
+/* ===================== rows & bands ===================== */
+var ROWDEF={
+  mob :{label:'Mobility',            unit:'0–3',  kind:'tooth'},
+  imp :{label:'Implant',             unit:'',     kind:'implant'},
+  furc:{label:'Furcation',           unit:'0–III',kind:'site'},
+  bop :{label:'Bleeding on Probing', unit:'',     kind:'mark'},
+  plq :{label:'Plaque',              unit:'',     kind:'mark'},
+  clc :{label:'Calculus',            unit:'',     kind:'mark'},
+  sup :{label:'Suppuration',         unit:'',     kind:'mark'},
+  gi  :{label:'Gingival Index',      unit:'0–3',  kind:'site'},
+  mgj :{label:'MGJ',                 unit:'mm',   kind:'site'},
+  gm  :{label:'Gingival Margin',     unit:'mm',   kind:'site'},
+  pd  :{label:'Probing Depth',       unit:'mm',   kind:'site'},
+  cal :{label:'Attachment Level',    unit:'mm',   kind:'calc'},
+  note:{label:'Note',                unit:'',     kind:'note'}
+};
+var OPTIONAL={clc:true,sup:true,mgj:true,gi:false,note:true};
+
+var BANDS=[
+  {id:'UB',arch:'U',surf:'B',label:'Upper · Buccal',   teeth:UPPER,above:true,
+   rows:['mob','imp','furc','bop','plq','clc','sup','gi','mgj','gm','pd','cal']},
+  {id:'UL',arch:'U',surf:'L',label:'Upper · Palatal',  teeth:UPPER,above:false,
+   rows:['gm','pd','cal','gi','sup','clc','plq','bop','furc','note']},
+  {id:'LL',arch:'L',surf:'L',label:'Lower · Lingual',  teeth:LOWER,above:true,
+   rows:['note','furc','bop','plq','clc','sup','gi','mgj','gm','pd','cal']},
+  {id:'LB',arch:'L',surf:'B',label:'Lower · Buccal',   teeth:LOWER,above:false,
+   rows:['gm','pd','cal','mgj','gi','sup','clc','plq','bop','furc','imp','mob']}
+];
+function bandOf(n,surf){ return (isUpper(n)?'U':'L')+surf; }
+function band(id){ for(var k=0;k<BANDS.length;k++) if(BANDS[k].id===id) return BANDS[k]; }
+function activeRows(b){ return b.rows.filter(function(r){ return !(r in OPTIONAL) || OPTIONAL[r]; }); }
+
+var SCREEN={}, SEQ=[], SEQ_LR=[], seqMode='serpentine';
+function rebuildSeq(){
+  BANDS.forEach(function(b){
+    var arr=[];
+    b.teeth.forEach(function(n){
+      if(chart[n].status==='missing') return;
+      order(n).forEach(function(p){ arr.push({n:n,surf:b.surf,p:p}); });
+    });
+    SCREEN[b.id]=arr;
+  });
+  SEQ=SCREEN.UB.concat(SCREEN.UL.slice().reverse(),SCREEN.LL,SCREEN.LB.slice().reverse());
+  SEQ_LR=SCREEN.UB.concat(SCREEN.UL,SCREEN.LL,SCREEN.LB);
+}
+rebuildSeq();
+var cur={n:3,surf:'B',p:'D',row:'pd'};
+
+/* ===================== tooth drawing ===================== */
+/* --- tooth drawing ------------------------------------------------------
+   Drawn as an anatomical instrument sketch rather than a glossy icon:
+   real cusp counts per tooth and surface, a scalloped CEJ that meets the
+   0 mm reference at the mid-facial, a dentino-enamel junction hairline,
+   root canals, and roots that drift distally the way they actually do.   */
+function fx(v){ return typeof v==='number'?(Math.round(v*10)/10):v; }
+function joinP(d){ return d.map(fx).join(' '); }
+
+function cuspCount(n,surf){
+  if(has(MOL_U,n)) return 2;
+  if(has(MOL_L,n)) return ((n===19||n===30)&&surf==='B')?3:2;
+  if(n===4||n===5||n===12||n===13||n===20||n===21||n===28||n===29)
+    return (surf==='L'&&(n===20||n===29))?2:1;
+  if(n===6||n===11||n===22||n===27) return 1;
+  return 0;                                   /* incisor: edge with mamelons */
+}
+function scallopOf(a){ return (a.type==='incisor'||a.type==='canine')?2.8:1.8; }
+
+/* --- tooth drawing -------------------------------------------------------
+   Rendered the way a 3D dental model reads: smooth all-bezier silhouettes,
+   a lobed cylindrical light wrap so each cusp shows as its own volume,
+   translucent enamel over the incisal third, developmental grooves,
+   ambient occlusion at the cervical, and a specular on the buccal bulge.  */
+
+function grad(id,x2,stops){
+  var out=stops.slice().sort(function(a,b){return a[0]-b[0];}).map(function(t){
+    return '<stop offset="'+t[0]+'" stop-color="'+t[1]+'" stop-opacity="'+t[2]+'"/>';
+  }).join('');
+  return '<linearGradient id="'+id+'" x1="0" y1="0" x2="'+(x2?1:0)+'" y2="'+(x2?0:1)+'">'+out+'</linearGradient>';
+}
+function lobePeaks(cusps){
+  return cusps<=0?[0.33]:cusps===1?[0.35]:cusps===2?[0.27,0.72]:[0.19,0.50,0.81];
+}
+/* Sample a continuous lighting curve instead of placing stops by hand —
+   evenly spaced samples of a smooth function cannot band or stripe. */
+function bell(x,c,w){ var t=(x-c)/w; return Math.exp(-t*t); }
+function smoothGrad(id,horiz,fn,hi,sh){
+  var N=28, st=[];
+  for(var i=0;i<=N;i++){
+    var x=i/N, v=fn(x);
+    if(v>1)v=1; if(v<-1)v=-1;
+    st.push([Math.round(x*1000)/1000, v>=0?'#fff':'#000',
+             Math.round((v>=0?v*hi:-v*sh)*1000)/1000]);
+  }
+  return grad(id,horiz,st);
+}
+function lobeGrad(id,cusps){
+  var peaks=lobePeaks(cusps), amp=cusps>=2?0.20:0.17, sg=cusps>=2?0.13:0.24;
+  return smoothGrad(id,true,function(x){
+    var v=Math.cos((x-0.30)*Math.PI/0.55)*0.72;         /* cylinder: lit at .30, core shadow .85 */
+    peaks.forEach(function(px){ v+=amp*bell(x,px,sg); });/* each cusp gets its own soft swell */
+    v+=0.42*bell(x,0.975,0.045);                         /* reflected light on the far rim */
+    v-=0.30*bell(x,0.010,0.035);                         /* near rim turns away from the light */
+    return v;
+  },0.42,0.26);
+}
+function cuspCount(n,surf){
+  if(has(MOL_U,n)) return 2;
+  if(has(MOL_L,n)) return ((n===19||n===30)&&surf==='B')?3:2;
+  if(n===4||n===5||n===12||n===13||n===20||n===21||n===28||n===29)
+    return (surf==='L'&&(n===20||n===29))?2:1;
+  if(n===6||n===11||n===22||n===27) return 1;
+  return 0;                                    /* incisor */
+}
+function scallopOf(a){ return (a.type==='incisor'||a.type==='canine')?2.8:1.8; }
+function occStart(cusps){ return cusps===0?0.80:0.72; }
+
+/* incisal / occlusal outline, entered at (-bw*0.93, h*occStart) */
+function occlusalEdge(cusps,bw,h,sharp){
+  var d=[];
+  if(cusps===0){
+    d.push('C',-bw*0.972,h*0.905,-bw*0.905,h*0.996,-bw*0.70,h*0.998);
+    d.push('Q',0,h*1.014,bw*0.70,h*0.998);
+    d.push('C',bw*0.905,h*0.996,bw*0.972,h*0.905,bw*0.93,h*0.80);
+    return d;
+  }
+  if(cusps===1){
+    var k=sharp?0.58:0.70, t=sharp?0.955:0.975;
+    d.push('C',-bw*k,h*0.855,-bw*0.23,h*t,0,h);
+    d.push('C',bw*0.23,h*t,bw*k,h*0.855,bw*0.93,h*0.72);
+    return d;
+  }
+  var x0=-bw*0.79, span=bw*1.58, lw=span/(cusps-1), tips=[];
+  for(var i=0;i<cusps;i++) tips.push(x0+i*lw);
+  d.push('C',-bw*0.905,h*0.875,tips[0]-lw*0.33,h*0.995,tips[0],h);
+  for(var j=1;j<cusps;j++){
+    var v=(tips[j-1]+tips[j])/2;
+    d.push('C',tips[j-1]+lw*0.29,h,v-lw*0.17,h*0.848,v,h*0.852);
+    d.push('C',v+lw*0.17,h*0.848,tips[j]-lw*0.29,h,tips[j],h);
+  }
+  d.push('C',tips[cusps-1]+lw*0.33,h*0.995,bw*0.905,h*0.875,bw*0.93,h*0.72);
+  return d;
+}
+function crownPath(a,cusps,sc){
+  var h=a.ch, c=a.cerv, bw=a.cw/2, oc=occStart(cusps), sharp=(a.type==='canine');
+  var d=['M',-c/2,sc];
+  d.push('C',-bw*0.93,h*0.19,-bw*1.005,h*0.48,-bw*0.93,h*oc);     /* mesial contour */
+  d=d.concat(occlusalEdge(cusps,bw,h,sharp));
+  d.push('C',bw*1.005,h*0.48,bw*0.93,h*0.19,c/2,sc);              /* distal contour */
+  d.push('Q',0,-sc,-c/2,sc,'Z');                                  /* CEJ scallop, 0 mm mid-facial */
+  return joinP(d);
+}
+/* enamel shell: occlusal outline closed by the dentino-enamel junction */
+function enamelCap(a,cusps){
+  var h=a.ch, bw=a.cw/2, oc=occStart(cusps), sharp=(a.type==='canine');
+  var dy=cusps===0?0.44:0.50, mid=dy+(cusps>=2?0.10:0.16);
+  var d=['M',-bw*0.93,h*oc];
+  d=d.concat(occlusalEdge(cusps,bw,h,sharp));
+  d.push('C',bw*0.78,h*(dy+0.09),bw*0.38,h*mid,0,h*mid);
+  d.push('C',-bw*0.38,h*mid,-bw*0.78,h*(dy+0.09),-bw*0.93,h*oc,'Z');
+  return joinP(d);
+}
+/* developmental grooves — the strongest read of relief at chart scale */
+function groovePaths(a,cusps){
+  var h=a.ch, bw=a.cw/2, out=[];
+  if(cusps>=2){
+    var x0=-bw*0.79, lw=(bw*1.58)/(cusps-1);
+    for(var j=1;j<cusps;j++){
+      var v=x0+(j-0.5)*lw;
+      out.push({d:joinP(['M',v,h*0.845,'C',v*1.03,h*0.60,v*0.92,h*0.42,v*0.80,h*0.26]),o:0.17});
+    }
+  }else if(cusps===0){
+    [-0.26,0.26].forEach(function(f){
+      var x=bw*f;
+      out.push({d:joinP(['M',x,h*0.965,'C',x*1.05,h*0.78,x*0.95,h*0.66,x*0.86,h*0.56]),o:0.10});
+    });
+  }
+  return out;
+}
+function rootPaths(a,sc,distal){
+  var w=a.cerv, rl=a.rl, out=[], offs, rws, backIdx=-1;
+  if(a.roots===1){ offs=[0]; rws=[w*0.82]; }
+  else if(a.roots===2){ offs=[-w*0.27,w*0.27]; rws=[w*0.43,w*0.43]; }
+  else { offs=[-w*0.36,0,w*0.36]; rws=[w*0.30,w*0.40,w*0.30]; backIdx=1; }
+  for(var k=0;k<a.roots;k++){
+    var ox=offs[k], rw=rws[k];
+    var splay=a.roots===1?0:(a.roots===3?(k===1?0:(k===0?-rl*0.17:rl*0.17))
+                                        :(ox<0?-rl*0.13:rl*0.13));
+    var drift=distal*rl*(a.roots===1?0.12:0.05);
+    var len=a.roots===3?(k===1?rl*1.14:rl*0.90):(a.roots===2?rl*0.98:rl);
+    var tipx=ox+splay+drift, top=sc*0.9;
+    out.push({
+      back:(k===backIdx),
+      d:joinP(['M',ox-rw/2,top,
+        'C',ox-rw*0.50,-len*0.33, tipx-rw*0.36,-len*0.72, tipx-rw*0.11,-len*0.955,
+        'Q',tipx,-len*1.01, tipx+rw*0.11,-len*0.955,
+        'C',tipx+rw*0.36,-len*0.72, ox+rw*0.50,-len*0.33, ox+rw/2,top,'Z'])
+    });
+  }
+  if(backIdx>=0) out.unshift(out.splice(backIdx,1)[0]);
+  return out;
+}
+
+var TOOTH_CACHE={};
+var SIL_CACHE={};
+function toothSilhouette(n,a,surf,key){
+  var ck=key+'|'+n+'|'+surf;
+  if(SIL_CACHE[ck]) return SIL_CACHE[ck];
+  var cusps=cuspCount(n,surf), sc=scallopOf(a), distal=(order(n)[0]==='D')?-1:1;
+  var d=[crownPath(a,cusps,sc)];
+  rootPaths(a,sc,distal).forEach(function(r){ d.push(r.d); });
+  return (SIL_CACHE[ck]='<path d="'+d.join(' ')+'" fill="var(--tooth-shadow)"/>');
+}
+function toothMarkup(n,a,surf,key,ghost,crowned){
+  var ck=key+'|'+n+'|'+surf+'|'+(ghost?'g':'')+(crowned?'c':'');
+  if(TOOTH_CACHE[ck]) return TOOTH_CACHE[ck];
+  var cusps=cuspCount(n,surf), sc=scallopOf(a);
+  var distal=(order(n)[0]==='D')?-1:1;
+  var cp=crownPath(a,cusps,sc), rs=rootPaths(a,sc,distal), g=[];
+  if(ghost){
+    rs.forEach(function(r){ g.push('<path d="'+r.d+'" fill="none" stroke="var(--line-3)" stroke-width=".9" stroke-dasharray="3 3"/>'); });
+    g.push('<path d="'+cp+'" fill="none" stroke="var(--line-3)" stroke-width=".9" stroke-dasharray="3 3"/>');
+    return (TOOTH_CACHE[ck]=g.join(''));
+  }
+  var edge='stroke="var(--tooth-line)" stroke-opacity=".72" stroke-width=".85" stroke-linejoin="round"';
+  rs.forEach(function(r){
+    g.push('<path d="'+r.d+'" fill="url(#rt'+key+')" '+edge+(r.back?' opacity=".8"':'')+'/>');
+    g.push('<path d="'+r.d+'" fill="url(#rcy'+key+')" stroke="none"'+(r.back?' opacity=".75"':'')+'/>');
+  });
+  g.push('<path d="'+cp+'" fill="url(#en'+key+')" '+edge+'/>');
+  g.push('<path d="'+enamelCap(a,cusps)+'" fill="url(#enm'+key+')" stroke="none"/>');
+  groovePaths(a,cusps).forEach(function(gr){
+    g.push('<path d="'+gr.d+'" fill="none" stroke="var(--tooth-line)" stroke-opacity="'+gr.o+'" stroke-width=".75" stroke-linecap="round"/>');
+  });
+  g.push('<path d="'+cp+'" fill="url(#lb'+key+cusps+')" stroke="none"/>');
+  g.push('<path d="'+cp+'" fill="url(#spc'+key+')" stroke="none"/>');
+  g.push('<path d="'+cp+'" fill="url(#gls'+key+')" stroke="none"/>');
+  if(crowned) g.push('<path d="'+cp+'" fill="none" stroke="var(--accent)" stroke-width="1.1" stroke-dasharray="3 2" opacity=".72"/>');
+  return (TOOTH_CACHE[ck]=g.join(''));
+}
+
+function implantMarkup(n,a,surf,key){
+  var w=a.cerv*0.58, rl=a.rl*0.84, p=[];
+  p.push('<path d="M '+fx(-w/2)+' 5 L '+fx(-w*0.38)+' '+fx(-rl)+' Q 0 '+fx(-rl-5)+' '+fx(w*0.38)+' '+fx(-rl)+' L '+fx(w/2)+' 5 Z" fill="var(--implant)" stroke="var(--ink-3)" stroke-opacity=".7" stroke-width=".85" id="fx'+key+n+'"/>');
+  for(var y=-5;y>-rl;y-=4.4){
+    var f=1-(Math.abs(y)/rl)*0.22;
+    p.push('<line x1="'+fx(-w/2*f)+'" y1="'+fx(y)+'" x2="'+fx(w/2*f)+'" y2="'+fx(y+2.1)+'" stroke="#fff" stroke-opacity=".38" stroke-width="1"/>');
+  }
+  p.push('<path d="M '+fx(-w/2)+' 5 L '+fx(-w*0.38)+' '+fx(-rl)+' Q 0 '+fx(-rl-5)+' '+fx(w*0.38)+' '+fx(-rl)+' L '+fx(w/2)+' 5 Z" fill="url(#rcy'+key+')" stroke="none"/>');
+  p.push('<rect x="'+fx(-a.cerv*0.27)+'" y="-1" width="'+fx(a.cerv*0.54)+'" height="9" rx="1.6" fill="var(--implant)" stroke="var(--ink-3)" stroke-opacity=".7" stroke-width=".85"/>');
+  var ca={cw:a.cw*0.90,ch:a.ch,cerv:a.cerv*0.84,type:a.type};
+  var cusps=cuspCount(n,surf), cp=crownPath(ca,cusps,1.4);
+  p.push('<g transform="translate(0,7)">'
+    +'<path d="'+cp+'" fill="url(#en'+key+')" stroke="var(--tooth-line)" stroke-opacity=".72" stroke-width=".85" stroke-linejoin="round"/>'
+    +'<path d="'+enamelCap(ca,cusps)+'" fill="url(#enm'+key+')" stroke="none"/>'
+    +'<path d="'+cp+'" fill="url(#lb'+key+cusps+')" stroke="none"/>'
+    +'<path d="'+cp+'" fill="url(#spc'+key+')" stroke="none"/></g>');
+  return p.join('');
+}
+
+function toothSvg(b,teeth,key){
+  var up=b.above;                       /* roots point toward the data rows */
+  var cy=up?CEJ_UP:CEJ_DN, dir=up?-1:1;
+  var g=['<svg width="'+HALF_W+'" height="'+TH+'" viewBox="0 0 '+HALF_W+' '+TH+'" role="img" aria-label="'+b.label+' teeth and roots">'];
+  var defs=[
+    '<linearGradient id="en'+key+'" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0" stop-color="var(--enamel-2)"/><stop offset=".22" stop-color="var(--enamel-2)"/>'
+      +'<stop offset="1" stop-color="var(--enamel)"/></linearGradient>',
+    '<linearGradient id="rt'+key+'" x1="0" y1="0" x2="0" y2="1">'
+      +'<stop offset="0" stop-color="var(--root)"/><stop offset=".72" stop-color="var(--root-2)"/>'
+      +'<stop offset="1" stop-color="var(--root-2)"/></linearGradient>',
+    smoothGrad('rcy'+key,true,function(x){
+      return Math.cos((x-0.32)*Math.PI/0.56)*0.78 + 0.38*bell(x,0.970,0.050) - 0.26*bell(x,0.015,0.040);
+    },0.46,0.26),
+    grad('enm'+key,false,[[0,'#fff',0],[0.55,'#fff',0.11],[1,'#fff',0.38]]),
+    '<radialGradient id="spc'+key+'" cx=".33" cy=".44" r=".38">'
+      +'<stop offset="0" stop-color="#fff" stop-opacity=".32"/>'
+      +'<stop offset=".55" stop-color="#fff" stop-opacity=".09"/>'
+      +'<stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>',
+    '<radialGradient id="gls'+key+'" cx=".29" cy=".27" r=".30" fx=".26" fy=".22">'
+      +'<stop offset="0" stop-color="#fff" stop-opacity=".82"/>'
+      +'<stop offset=".38" stop-color="#fff" stop-opacity=".30"/>'
+      +'<stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>',
+    '<filter id="shd'+key+'" x="-14%" y="-14%" width="128%" height="128%">'
+      +'<feGaussianBlur stdDeviation="1.6"/></filter>',
+    lobeGrad('lb'+key+'0',0), lobeGrad('lb'+key+'1',1), lobeGrad('lb'+key+'2',2), lobeGrad('lb'+key+'3',3)
+  ];
+  g.push('<defs>'+defs.join('')+'</defs>');
+
+  /* 1 mm rule, drawn across the whole half like a periodontal ruler */
+  for(var mm=-4;mm<=14;mm++){
+    var y=cy+dir*mm*S; if(y<1||y>TH-1) continue;
+    var strong=(mm%5===0);
+    g.push('<line x1="0" y1="'+y.toFixed(1)+'" x2="'+HALF_W+'" y2="'+y.toFixed(1)
+      +'" stroke="'+(strong?'var(--rule-5)':'var(--rule)')+'" stroke-width="'+(strong?0.9:0.6)+'"/>');
+  }
+  g.push('<line x1="0" y1="'+cy+'" x2="'+HALF_W+'" y2="'+cy+'" stroke="var(--ink-3)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>');
+
+  var sh=[];
+  teeth.forEach(function(n,i){
+    var t=chart[n]; if(t.status==='missing') return;
+    var a=anat(n), cx=i*COL+COL/2;
+    sh.push('<g transform="translate('+(cx+1.5)+','+(cy+2.4)+')'+(up?'':' scale(1,-1)')+'">'
+      +toothSilhouette(n,a,b.surf,key)+'</g>');
+  });
+  if(sh.length) g.push('<g filter="url(#shd'+key+')" opacity=".3">'+sh.join('')+'</g>');
+
+  teeth.forEach(function(n,i){
+    var t=chart[n], a=anat(n), cx=i*COL+COL/2;
+    var tf='translate('+cx+','+cy+')'+(up?'':' scale(1,-1)');
+    if(t.status==='missing'){
+      g.push('<g transform="'+tf+'" opacity=".42">'+toothMarkup(n,a,b.surf,key,true,false)+'</g>');
+      g.push('<text x="'+cx+'" y="'+(cy+(up?4:-2))+'" text-anchor="middle" font-family="IBM Plex Sans" font-size="13" fill="var(--ink-3)">✕</text>');
+      return;
+    }
+    if(t.status==='implant'){ g.push('<g transform="'+tf+'">'+implantMarkup(n,a,b.surf,key)+'</g>'); }
+    else{
+      g.push('<g transform="'+tf+'">'+toothMarkup(n,a,b.surf,key,false,t.crown)+'</g>');
+    }
+    /* furcation triangles on the root trunk */
+    var fs=furcSites(n,b.surf), ps=order(n);
+    fs.forEach(function(p){
+      var v=t[b.surf].furc[p]; if(!v) return;
+      var x = fs.length===1 ? cx : i*COL+(ps.indexOf(p)+0.5)*SITE;
+      var y = cy+dir*(a.rl*0.36);
+      var col = v>=3?'var(--crit)':(v===2?'var(--warn)':'var(--ink-2)');
+      var pts = up
+        ? (x-4.5)+','+(y-3.5)+' '+(x+4.5)+','+(y-3.5)+' '+x+','+(y+4)
+        : (x-4.5)+','+(y+3.5)+' '+(x+4.5)+','+(y+3.5)+' '+x+','+(y-4);
+      g.push('<polygon points="'+pts+'" fill="'+(v>=3?col:'var(--surface)')+'" stroke="'+col+'" stroke-width="1.3"/>');
+    });
+  });
+
+  /* GM / CAL curves with the pocket band between them */
+  var runs=[],run=[];
+  teeth.forEach(function(n,i){
+    var t=chart[n];
+    if(t.status==='missing'){ if(run.length){runs.push(run);run=[];} return; }
+    order(n).forEach(function(p,k){
+      var pd=t[b.surf].pd[p];
+      if(pd===undefined||pd===null){ if(run.length){runs.push(run);run=[];} return; }
+      var gm=t[b.surf].gm[p]||0, x=i*COL+(k+0.5)*SITE;
+      run.push({x:x,gy:cy+dir*gm*S,py:cy+dir*(gm+pd)*S,bop:!!t[b.surf].bop[p],sup:!!t[b.surf].sup[p]});
+    });
+  });
+  if(run.length) runs.push(run);
+  runs.forEach(function(r){
+    var gl=r.map(function(q){return q.x.toFixed(1)+','+q.gy.toFixed(1);}).join(' ');
+    var pl=r.map(function(q){return q.x.toFixed(1)+','+q.py.toFixed(1);}).join(' ');
+    g.push('<polygon points="'+gl+' '+r.slice().reverse().map(function(q){return q.x.toFixed(1)+','+q.py.toFixed(1);}).join(' ')+'" fill="var(--pd-fill)"/>');
+    g.push('<polyline points="'+pl+'" fill="none" stroke="var(--cal-line)" stroke-width="1.5" stroke-linejoin="round"/>');
+    g.push('<polyline points="'+gl+'" fill="none" stroke="var(--gum)" stroke-width="1.9" stroke-linejoin="round"/>');
+    r.forEach(function(q){
+      if(q.sup) g.push('<circle cx="'+q.x.toFixed(1)+'" cy="'+q.py.toFixed(1)+'" r="4.3" fill="none" stroke="var(--sup)" stroke-width="1.4"/>');
+      if(q.bop) g.push('<circle cx="'+q.x.toFixed(1)+'" cy="'+q.py.toFixed(1)+'" r="2.4" fill="var(--bop)"/>');
+    });
+  });
+  g.push('</svg>');
+  return g.join('');
+}
+
+/* ===================== values ===================== */
+function valOf(n,surf,p,row){
+  var t=chart[n];
+  if(row==='mob') return t.mobility;
+  if(row==='cal'){
+    var pd=t[surf].pd[p]; if(pd===undefined||pd===null) return null;
+    return pd+(t[surf].gm[p]||0);
+  }
+  var v=t[surf][row]&&t[surf][row][p];
+  return v===undefined?null:v;
+}
+function cellClass(row,v){
+  if(v===null||v===undefined) return ' empty';
+  if(row==='pd') return v>=6?' v-crit':(v>=4?' v-warn':'');
+  if(row==='cal') return v>=5?' v-crit':(v>=3?' v-warn':'');
+  if(row==='furc'||row==='mob'||row==='gi') return v>=3?' v-crit':(v>=2?' v-warn':'');
+  if(row==='mgj') return v<2?' v-warn':'';
+  if(row==='gm') return v<0?' v-neg':'';
+  return '';
+}
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ===================== chart rendering ===================== */
+var chartEl=document.getElementById('chart');
+function halves(teeth){ return [teeth.slice(0,8),teeth.slice(8,16)]; }
+
+function rowCells(b,row,teeth){
+  var kind=ROWDEF[row].kind, h=[];
+  teeth.forEach(function(n){
+    var t=chart[n], gone=t.status==='missing', ps=order(n), fs=furcSites(n,b.surf);
+    if(kind==='tooth'){
+      h.push('<div class="cell span3 tooth-first tooth-last'+(gone?' gone':'')+cellClass(row,gone?null:t.mobility)
+        +'" data-n="'+n+'" data-s="'+b.surf+'" data-p="C" data-r="'+row+'">'+(gone?'':(t.mobility==null?'·':t.mobility))+'</div>');
+      return;
+    }
+    if(kind==='implant'){
+      h.push('<div class="cell mk span3 tooth-first tooth-last'+(gone?' gone':'')+'" data-n="'+n+'" data-s="'+b.surf+'" data-p="C" data-r="imp">'
+        +(t.status==='implant'?'<i class="mark" style="background:var(--implant);border-radius:2px;width:11px;height:8px"></i>':'')+'</div>');
+      return;
+    }
+    if(kind==='note'){
+      h.push('<div class="cell notec tooth-first tooth-last'+(gone?' gone':'')+'" data-n="'+n+'" data-r="note"'
+        +(gone?'':' contenteditable="true" spellcheck="false"')+'>'+escapeHtml(t.note||'')+'</div>');
+      return;
+    }
+    ps.forEach(function(p,k){
+      var cls='cell'+(kind==='mark'?' mk':'')+(k===0?' tooth-first':'')+(k===2?' tooth-last':'');
+      var na=false;
+      if(gone){ cls+=' gone'; na=true; }
+      else if(row==='furc' && !has(fs,p)){ cls+=' na'; na=true; }
+      else if(row==='mgj' && (!hasMgj(n,b.surf)||p!=='C')){ cls+=' na'; na=true; }
+      var inner='';
+      if(!na){
+        if(kind==='mark'){
+          if(t[b.surf][row][p]) inner='<i class="mark m-'+row+'"></i>';
+        }else{
+          var v=valOf(n,b.surf,p,row);
+          cls+=cellClass(row,v);
+          inner=(v===null||v===undefined)?'·':(row==='furc'?['0','I','II','III'][Math.min(3,v)]:v);
+        }
+      }
+      h.push('<div class="'+cls+'" data-n="'+n+'" data-s="'+b.surf+'" data-p="'+p+'" data-r="'+row+'">'+inner+'</div>');
+    });
+  });
+  return h.join('');
+}
+function rowHtml(b,row,top){
+  var hv=halves(b.teeth);
+  return '<div class="rl'+(top?'':'')+'"><span>'+ROWDEF[row].label+'</span>'
+    +(ROWDEF[row].unit?'<span class="u">'+ROWDEF[row].unit+'</span>':'')+'</div>'
+    + rowCells(b,row,hv[0]) + '<div class="gapcell"></div>' + rowCells(b,row,hv[1]);
+}
+function toothRowHtml(b){
+  var hv=halves(b.teeth);
+  return '<div class="rl"></div><div class="toothrow">'+toothSvg(b,hv[0],b.id+'a')+'</div>'
+    +'<div class="gapcell"></div><div class="toothrow">'+toothSvg(b,hv[1],b.id+'b')+'</div>';
+}
+function numbersRowHtml(teeth){
+  function part(list){
+    return list.map(function(n){
+      var t=chart[n],tag='';
+      if(t.status==='implant') tag='<span class="tag">IMP</span>';
+      else if(t.crown) tag='<span class="tag">CR</span>';
+      return '<div class="numcell'+(t.status==='missing'?' off':'')+'" data-tooth="'+n+'">'+toothLabel(n)+tag+'</div>';
+    }).join('');
+  }
+  var hv=halves(teeth);
+  return '<div class="rl"><span class="u">tooth</span></div>'+part(hv[0])+'<div class="gapcell"></div>'+part(hv[1]);
+}
+function bandLabelHtml(b){
+  var side=b.surf==='B'?'facial / buccal':(b.arch==='U'?'palatal':'lingual');
+  return '<div class="bandlabel"><span class="rail"></span><span class="bl">'+b.label+'</span>'
+    +'<span class="hint">'+side+' · three sites per tooth, mesial – mid – distal · roots face the data</span></div>';
+}
+
+function render(){
+  var teethMode=document.getElementById('dispmode').value==='teeth';
+  var h=[];
+  [['U',UPPER],['L',LOWER]].forEach(function(pair,ai){
+    var bs=BANDS.filter(function(b){return b.arch===pair[0];});
+    var b1=bs[0], b2=bs[1];
+    h.push(bandLabelHtml(b1));
+    h.push('<div class="grid rowtop">');
+    activeRows(b1).forEach(function(r){ h.push(rowHtml(b1,r)); });
+    if(teethMode) h.push(toothRowHtml(b1));
+    h.push('</div>');
+    h.push('<div class="grid">'+numbersRowHtml(pair[1])+'</div>');
+    h.push('<div class="grid">');
+    if(teethMode) h.push(toothRowHtml(b2));
+    activeRows(b2).forEach(function(r){ h.push(rowHtml(b2,r)); });
+    h.push('</div>');
+    h.push(bandLabelHtml(b2));
+    if(ai===0) h.push(summaryHtml());
+  });
+  chartEl.innerHTML=h.join('');
+  markCurrent(); renderInsp(); renderStats(); renderFindings();
+}
+function summaryHtml(){
+  var m=metrics();
+  return '<div class="summary">'
+    +'<div>Avg. probing depth <b>'+m.meanPd+' mm</b></div>'
+    +'<div>Avg. attachment level <b>'+m.meanCal+' mm</b></div>'
+    +'<div'+(m.bopPct>=30?' class="hot"':'')+'>BOP <b>'+m.bopPct+' %</b></div>'
+    +'<div'+(m.plqPct>=40?' class="hot"':'')+'>PI <b>'+m.plqPct+' %</b></div>'
+    +'<div>Sites ≥ 5 mm <b>'+m.p5+'</b></div>'
+    +'<div'+(m.p6?' class="hot"':'')+'>Sites ≥ 6 mm <b>'+m.p6+'</b></div>'
+    +'</div>';
+}
+function markCurrent(){
+  var old=chartEl.querySelector('.cell.cur'); if(old) old.classList.remove('cur');
+  var sel='.cell[data-n="'+cur.n+'"][data-s="'+cur.surf+'"][data-r="'+cur.row+'"]';
+  var el=chartEl.querySelector(sel+'[data-p="'+cur.p+'"]')||chartEl.querySelector(sel);
+  if(el) el.classList.add('cur');
+  var s2=chartEl.querySelector('.numcell.sel'); if(s2) s2.classList.remove('sel');
+  var nc=chartEl.querySelector('.numcell[data-tooth="'+cur.n+'"]'); if(nc) nc.classList.add('sel');
+  document.getElementById('inspSurf').textContent=band(bandOf(cur.n,cur.surf)).label;
+}
+
+/* ===================== inspector ===================== */
+function renderInsp(){
+  var t=chart[cur.n], o=t[cur.surf], p=cur.p;
+  var pd=o.pd[p], gm=o.gm[p], cal=(pd===undefined?null:pd+(gm||0));
+  var posName={M:'Mesial',C:'Mid',D:'Distal'}[p];
+  var surfName=cur.surf==='B'?'Buccal':(isUpper(cur.n)?'Palatal':'Lingual');
+  function tri(lab,v,cls){ return '<div class="tri '+cls+'"><div class="lab">'+lab+'</div><div class="val">'+(v==null?'–':v)+'</div></div>'; }
+  var h=[];
+  h.push('<div class="insp-site"><span class="t">'+toothLabel(cur.n)+'</span><span class="s">'+surfName+' · '+posName+' · '
+    +(t.status==='implant'?'implant':(t.crown?'crowned':'natural'))+(numsys==='uni'?'':' · Universal '+cur.n)+'</span></div>');
+  h.push('<div class="triad">'+tri('PD',pd,pd>=6?'crit':(pd>=4?'warn':''))+tri('GM',gm,'')
+    +tri('CAL',cal,cal>=5?'crit':(cal>=3?'warn':''))+'</div>');
+
+  h.push('<div class="fieldrow"><span class="eyebrow">PD mm</span><div class="seg">');
+  for(var v=0;v<=10;v++) h.push('<button class="chip sm'+(pd===v?' on':'')+'" data-set="pd" data-v="'+v+'">'+v+'</button>');
+  h.push('</div></div>');
+
+  h.push('<div class="fieldrow"><span class="eyebrow">GM rec</span><div class="seg">');
+  [-2,-1,0,1,2,3,4,5,6].forEach(function(v){ h.push('<button class="chip sm'+(gm===v?' on':'')+'" data-set="gm" data-v="'+v+'">'+v+'</button>'); });
+  h.push('</div></div>');
+
+  h.push('<div class="fieldrow"><span class="eyebrow">Markers</span><div class="seg">'
+    +'<button class="chip k-bop'+(o.bop[p]?' on':'')+'" data-tog="bop">Bleeding</button>'
+    +'<button class="chip k-sup'+(o.sup[p]?' on':'')+'" data-tog="sup">Suppuration</button>'
+    +'<button class="chip k-plq'+(o.plq[p]?' on':'')+'" data-tog="plq">Plaque</button>'
+    +'<button class="chip k-clc'+(o.clc[p]?' on':'')+'" data-tog="clc">Calculus</button></div></div>');
+
+  h.push('<div class="fieldrow"><span class="eyebrow">Ging. index</span><div class="seg">');
+  [0,1,2,3].forEach(function(v){ h.push('<button class="chip sm'+((o.gi[p]||0)===v?' on':'')+'" data-set="gi" data-v="'+v+'">'+v+'</button>'); });
+  h.push('</div></div>');
+
+  h.push('<div class="fieldrow"><span class="eyebrow">Mobility</span><div class="seg">');
+  [0,1,2,3].forEach(function(v){ h.push('<button class="chip sm'+(t.mobility===v?' on':'')+'" data-set="mob" data-v="'+v+'">'+v+'</button>'); });
+  h.push('</div></div>');
+
+  if(has(furcSites(cur.n,cur.surf),p)){
+    h.push('<div class="fieldrow"><span class="eyebrow">Furcation</span><div class="seg">');
+    [0,1,2,3].forEach(function(v){ h.push('<button class="chip sm'+(o.furc[p]===v?' on':'')+'" data-set="furc" data-v="'+v+'">'+['0','I','II','III'][v]+'</button>'); });
+    h.push('</div></div>');
+  }
+  if(hasMgj(cur.n,cur.surf)){
+    h.push('<div class="fieldrow"><span class="eyebrow">MGJ mm</span><div class="seg">');
+    for(var m2=0;m2<=8;m2++) h.push('<button class="chip sm'+(o.mgj.C===m2?' on':'')+'" data-set="mgj" data-v="'+m2+'">'+m2+'</button>');
+    h.push('</div></div>');
+  }
+  h.push('<div class="fieldrow"><span class="eyebrow">Recession</span><div class="seg">');
+  ['','Miller I','Miller II','Miller III','Cairo RT1','Cairo RT2'].forEach(function(v){
+    h.push('<button class="chip'+(t.recClass===v?' on':'')+'" data-rec="'+v+'">'+(v||'none')+'</button>');
+  });
+  h.push('</div></div>');
+  h.push('<div class="fieldrow"><span class="eyebrow">Tooth</span><div class="seg">'
+    +'<button class="chip'+(t.status==='present'?' on':'')+'" data-st="present">Present</button>'
+    +'<button class="chip'+(t.status==='missing'?' on':'')+'" data-st="missing">Missing</button>'
+    +'<button class="chip'+(t.status==='implant'?' on':'')+'" data-st="implant">Implant</button>'
+    +'<button class="chip'+(t.crown?' on':'')+'" data-st="crown">Crown</button></div></div>');
+  document.getElementById('insp').innerHTML=h.join('');
+}
+
+/* ===================== indices ===================== */
+function metrics(){
+  var m={sites:0,bop:0,plq:0,clc:0,sup:0,pdSum:0,calSum:0,p4:0,p5:0,p6:0,recSites:0,maxCal:0,
+         missing:0,furc2:[],mob2:[],teeth:0,interCalMax:0,calSites:0,giSum:0};
+  for(var n=1;n<=32;n++){
+    var t=chart[n];
+    if(t.status==='missing'){ m.missing++; continue; }
+    m.teeth++;
+    if(t.mobility>=2) m.mob2.push(n);
+    ['B','L'].forEach(function(sf){
+      var o=t[sf];
+      order(n).forEach(function(p){
+        var pd=o.pd[p]; if(pd==null) return;
+        var gm=o.gm[p]||0, cal=pd+gm;
+        m.sites++; m.pdSum+=pd; m.calSum+=cal; m.giSum+=(o.gi[p]||0);
+        if(pd>=4)m.p4++; if(pd>=5)m.p5++; if(pd>=6)m.p6++;
+        if(gm>0)m.recSites++;
+        if(o.bop[p])m.bop++; if(o.plq[p])m.plq++; if(o.clc[p])m.clc++; if(o.sup[p])m.sup++;
+        if(cal>m.maxCal)m.maxCal=cal;
+        if(cal>=3)m.calSites++;
+        if(p!=='C'&&cal>m.interCalMax)m.interCalMax=cal;
+      });
+      furcSites(n,sf).forEach(function(p){ if(o.furc[p]>=2&&m.furc2.indexOf(n)<0) m.furc2.push(n); });
+    });
+  }
+  m.bopPct=m.sites?Math.round(m.bop/m.sites*100):0;
+  m.plqPct=m.sites?Math.round(m.plq/m.sites*100):0;
+  m.meanPd=m.sites?(m.pdSum/m.sites).toFixed(1):'0.0';
+  m.meanCal=m.sites?(m.calSum/m.sites).toFixed(1):'0.0';
+  m.meanGi=m.sites?(m.giSum/m.sites).toFixed(1):'0.0';
+  m.extent=m.sites?Math.round(m.calSites/m.sites*100):0;
+  return m;
+}
+function stageOf(m){
+  var s = m.interCalMax>=5?3:(m.interCalMax>=3?2:1);
+  if(s>=3&&(m.p6>0||m.furc2.length>0)) s=3;
+  if(m.mob2.length>=1||m.missing>=5) s=4;   /* tooth loss / mobility, not depth alone */
+  return s;
+}
+function renderStats(){
+  var m=metrics(), st=stageOf(m);
+  function s(lab,val,sub,hot,bar){
+    return '<div class="stat'+(hot?' hot':'')+'"><div class="lab">'+lab+'</div><div class="val">'+val
+      +(sub?'<small>'+sub+'</small>':'')+'</div>'+(bar!==undefined?'<div class="bar"><i style="width:'+bar+'%"></i></div>':'')+'</div>';
+  }
+  document.getElementById('stats').innerHTML=
+      s('Bleeding',m.bopPct,'%',m.bopPct>=30,m.bopPct)
+    + s('Plaque',m.plqPct,'%',m.plqPct>=40,m.plqPct)
+    + s('Mean PD',m.meanPd,'mm',false)
+    + s('Mean CAL',m.meanCal,'mm',false)
+    + s('PD ≥ 4 mm',m.p4,'sites',false)
+    + s('PD ≥ 6 mm',m.p6,'sites',m.p6>0)
+    + s('Furcation ≥ II',m.furc2.length,'teeth',m.furc2.length>0)
+    + s('Recession',m.recSites,'sites',false);
+  document.getElementById('dx').innerHTML=
+      '<div class="dxbox"><div class="lab">Stage</div><div class="val">'+['I','II','III','IV'][st-1]+'</div></div>'
+    + '<div class="dxbox"><div class="lab">Grade</div><div class="val">B <small>manual</small></div></div>'
+    + '<div class="dxbox"><div class="lab">Extent</div><div class="val">'+(m.extent>=30?'Generalized':'Localized')+' <small>'+m.extent+'%</small></div></div>';
+}
+function renderFindings(){
+  var out=[];
+  for(var n=1;n<=32;n++){
+    var t=chart[n]; if(t.status==='missing') continue;
+    ['B','L'].forEach(function(sf){
+      var o=t[sf], sl=sf==='B'?'B':(isUpper(n)?'P':'L');
+      order(n).forEach(function(p){
+        var pd=o.pd[p]; if(!pd) return;
+        var cal=pd+(o.gm[p]||0), why=[];
+        if(pd>=6) why.push('PD '+pd+' mm');
+        if(o.sup[p]) why.push('suppuration');
+        if(cal>=6) why.push('CAL '+cal+' mm');
+        if(!why.length) return;
+        out.push({n:n,sf:sf,p:p,rank:pd,txt:sl+'-'+p+' · '+why.join(', '),sev:(pd>=8||o.sup[p])?'var(--crit)':'var(--warn)'});
+      });
+      furcSites(n,sf).forEach(function(p){
+        if(o.furc[p]>=2) out.push({n:n,sf:sf,p:p,rank:7,txt:sl+'-'+p+' · furcation '+['0','I','II','III'][o.furc[p]],sev:'var(--crit)'});
+      });
+    });
+    if(t.mobility>=2) out.push({n:n,sf:'B',p:'C',rank:6,txt:'mobility '+t.mobility,sev:'var(--crit)'});
+    if(t.note) out.push({n:n,sf:'B',p:'C',rank:5,txt:'note · '+t.note,sev:'var(--ink-3)'});
+  }
+  out.sort(function(a,b){return b.rank-a.rank;});
+  document.getElementById('findCount').textContent=out.length+' items';
+  document.getElementById('findings').innerHTML= out.length? out.map(function(f){
+    return '<div class="finding" data-n="'+f.n+'" data-s="'+f.sf+'" data-p="'+f.p+'">'
+      +'<span class="sev" style="background:'+f.sev+'"></span><span class="tn">'+toothLabel(f.n)+'</span>'
+      +'<span class="desc">'+escapeHtml(f.txt)+'</span></div>';
+  }).join('') : '<div class="note">No sites ≥ 6 mm, no suppuration, no furcation ≥ II.</div>';
+}
+
+/* ===================== interaction ===================== */
+function setCur(n,surf,p,row){
+  var b=band(bandOf(n,surf));
+  var r=row||cur.row;
+  if(!has(activeRows(b),r)) r='pd';
+  cur={n:n,surf:surf,p:p,row:r};
+  markCurrent(); renderInsp();
+}
+function navRows(b){ return activeRows(b).filter(function(r){ return r!=='cal'&&r!=='note'&&r!=='imp'; }); }
+function seqList(){ return seqMode==='serpentine'?SEQ:SEQ_LR; }
+function advance(step){
+  var list=seqList(),k=-1;
+  for(var i2=0;i2<list.length;i2++){ var q=list[i2]; if(q.n===cur.n&&q.surf===cur.surf&&q.p===cur.p){k=i2;break;} }
+  if(k<0) return;
+  var q2=list[(k+step%list.length+list.length)%list.length];
+  setCur(q2.n,q2.surf,q2.p,cur.row);
+  var el=chartEl.querySelector('.cell.cur'); if(el&&el.scrollIntoView) el.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function moveScreen(step){
+  var arr=SCREEN[bandOf(cur.n,cur.surf)],k=-1;
+  for(var i3=0;i3<arr.length;i3++){ if(arr[i3].n===cur.n&&arr[i3].p===cur.p){k=i3;break;} }
+  if(k<0) return;
+  var q=arr[(k+step+arr.length)%arr.length];
+  setCur(q.n,q.surf,q.p,cur.row);
+}
+function moveRow(step){
+  var b=band(bandOf(cur.n,cur.surf)), rows=navRows(b);
+  var k=rows.indexOf(cur.row); if(k<0) k=rows.indexOf('pd');
+  cur.row=rows[(k+step+rows.length)%rows.length];
+  markCurrent(); renderInsp();
+}
+function writeVal(row,v){
+  var t=chart[cur.n];
+  if(row==='cal') return;
+  if(row==='mob') t.mobility=v;
+  else if(row==='furc'){ if(!has(furcSites(cur.n,cur.surf),cur.p)) return; t[cur.surf].furc[cur.p]=v; }
+  else if(row==='mgj'){ if(!hasMgj(cur.n,cur.surf)) return; t[cur.surf].mgj.C=v; }
+  else t[cur.surf][row][cur.p]=v;
+  render();
+}
+function toggleMark(k){
+  var o=chart[cur.n][cur.surf];
+  if(o[k][cur.p]) delete o[k][cur.p]; else o[k][cur.p]=true;
+  render();
+}
+
+chartEl.addEventListener('click',function(e){
+  var nc=e.target.closest('.numcell');
+  if(nc){ var n=+nc.dataset.tooth; setCur(n,cur.surf,order(n)[1],'pd'); chartEl.focus(); return; }
+  var c=e.target.closest('.cell');
+  if(!c||c.classList.contains('na')||c.classList.contains('gone')) return;
+  if(c.dataset.r==='note') return;
+  if(c.dataset.r==='imp'){
+    var t=chart[+c.dataset.n];
+    t.status=(t.status==='implant')?'present':'implant';
+    rebuildSeq(); render(); return;
+  }
+  setCur(+c.dataset.n,c.dataset.s,c.dataset.p,c.dataset.r);
+  if(ROWDEF[c.dataset.r].kind==='mark') toggleMark(c.dataset.r);
+  chartEl.focus();
+});
+chartEl.addEventListener('input',function(e){
+  var c=e.target.closest('.cell.notec'); if(!c) return;
+  chart[+c.dataset.n].note=c.textContent.trim();
+});
+chartEl.addEventListener('blur',function(e){
+  var c=e.target.closest&&e.target.closest('.cell.notec'); if(!c) return;
+  renderFindings();
+},true);
+
+chartEl.addEventListener('keydown',function(e){
+  if(e.target.classList&&e.target.classList.contains('notec')) return;
+  var k=e.key, kind=ROWDEF[cur.row].kind;
+  if(k>='0'&&k<='9'){
+    var d=+k;
+    if(kind==='mark'){
+      var o=chart[cur.n][cur.surf];
+      if(d) o[cur.row][cur.p]=true; else delete o[cur.row][cur.p];
+      render();
+    }else if(cur.row==='pd'||cur.row==='gm'||cur.row==='mgj'){
+      writeVal(cur.row,d); if(cur.row==='pd') advance(1);
+    }else if(cur.row==='furc'||cur.row==='mob'||cur.row==='gi'){
+      writeVal(cur.row,Math.min(3,d));
+    }
+    e.preventDefault(); return;
+  }
+  var low=k.toLowerCase();
+  if(low==='b'){toggleMark('bop');e.preventDefault();return;}
+  if(low==='s'){toggleMark('sup');e.preventDefault();return;}
+  if(low==='p'){toggleMark('plq');e.preventDefault();return;}
+  if(low==='c'){toggleMark('clc');e.preventDefault();return;}
+  if(k==='-'){ var g=chart[cur.n][cur.surf].gm; if(cur.row==='gm'&&g[cur.p]!=null){ g[cur.p]=-Math.abs(g[cur.p]); render(); } e.preventDefault(); return; }
+  if(k==='ArrowRight'){moveScreen(1);e.preventDefault();return;}
+  if(k==='ArrowLeft'){moveScreen(-1);e.preventDefault();return;}
+  if(k==='ArrowDown'){moveRow(1);e.preventDefault();return;}
+  if(k==='ArrowUp'){moveRow(-1);e.preventDefault();return;}
+  if(k==='Enter'||k==='Tab'){advance(e.shiftKey?-1:1);e.preventDefault();return;}
+  if(k==='Backspace'||k==='Delete'){
+    var t=chart[cur.n];
+    if(cur.row==='mob') t.mobility=null;
+    else if(cur.row==='mgj') delete t[cur.surf].mgj.C;
+    else delete t[cur.surf][cur.row][cur.p];
+    render(); e.preventDefault(); return;
+  }
+});
+
+document.getElementById('insp').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.set!==undefined){ writeVal(b.dataset.set,+b.dataset.v); return; }
+  if(b.dataset.tog){ toggleMark(b.dataset.tog); return; }
+  if(b.dataset.rec!==undefined){ chart[cur.n].recClass=b.dataset.rec; renderInsp(); return; }
+  if(b.dataset.st){
+    var t=chart[cur.n];
+    if(b.dataset.st==='crown') t.crown=!t.crown; else t.status=b.dataset.st;
+    rebuildSeq(); render(); return;
+  }
+});
+document.getElementById('findings').addEventListener('click',function(e){
+  var f=e.target.closest('.finding'); if(!f) return;
+  setCur(+f.dataset.n,f.dataset.s,f.dataset.p,'pd'); chartEl.focus();
+  var el=chartEl.querySelector('.cell.cur'); if(el&&el.scrollIntoView) el.scrollIntoView({block:'center',inline:'center'});
+});
+document.getElementById('dispmode').addEventListener('change',render);
+document.getElementById('numsys').addEventListener('change',function(e){ numsys=e.target.value; render(); });
+document.getElementById('seqsel').addEventListener('change',function(e){ seqMode=e.target.value; });
+
+/* optional-row toggles */
+(function buildToggles(){
+  var wrap=document.getElementById('rowToggles');
+  wrap.innerHTML=Object.keys(OPTIONAL).map(function(r){
+    return '<button class="chip'+(OPTIONAL[r]?' on':'')+'" data-row="'+r+'">'+ROWDEF[r].label+'</button>';
+  }).join('');
+  wrap.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    OPTIONAL[b.dataset.row]=!OPTIONAL[b.dataset.row];
+    b.classList.toggle('on',OPTIONAL[b.dataset.row]);
+    if(!has(navRows(band(bandOf(cur.n,cur.surf))),cur.row)) cur.row='pd';
+    render();
+  });
+})();
+
+/* ---------- dictation ---------- */
+function log(msg,cls){
+  var box=document.getElementById('cmdLog');
+  var d=document.createElement('div'); d.textContent=msg; if(cls) d.className=cls;
+  box.insertBefore(d,box.firstChild);
+  while(box.children.length>28) box.removeChild(box.lastChild);
+}
+function applyTriplet(row,a,b2,c){
+  var vals=[a,b2,c];
+  order(cur.n).forEach(function(p,k){ chart[cur.n][cur.surf][row][p]=vals[k]; });
+  render();
+}
+function runCommand(raw){
+  var s=raw.trim().toLowerCase(); if(!s) return;
+  var m;
+  if((m=s.match(/^(?:tooth|number|#)\s*(\d{1,2})$/))){
+    var n=+m[1];
+    if(numsys==='fdi'){ var found=null; for(var k in FDI) if(FDI[k]===n) found=+k; n=found; }
+    if(!n||n<1||n>32){ log('No tooth '+m[1],'err'); return; }
+    setCur(n,cur.surf,order(n)[1],'pd'); log('→ tooth '+toothLabel(n),'ok'); return;
+  }
+  if((m=s.match(/^(upper|maxillary|lower|mandibular)\s+(buccal|facial|palatal|lingual)$/))){
+    var up=/upper|maxill/.test(m[1]), sf=/buccal|facial/.test(m[2])?'B':'L', tn=cur.n;
+    if(up!==isUpper(tn)) tn=up?3:30;
+    setCur(tn,sf,order(tn)[1],'pd'); log('→ '+band(bandOf(tn,sf)).label,'ok'); return;
+  }
+  if((m=s.match(/^(?:rec|recession|gm)\s*(-?\d)\s*(-?\d)\s*(-?\d)$/))){
+    applyTriplet('gm',+m[1],+m[2],+m[3]); log('GM '+m[1]+' '+m[2]+' '+m[3]+' → '+toothLabel(cur.n),'ok'); return; }
+  if((m=s.match(/^(?:pd|probe|depth)?\s*(\d)\s*(\d)\s*(\d)$/))){
+    applyTriplet('pd',+m[1],+m[2],+m[3]);
+    log('PD '+m[1]+' '+m[2]+' '+m[3]+' → '+toothLabel(cur.n)+' '+(cur.surf==='B'?'buccal':(isUpper(cur.n)?'palatal':'lingual')),'ok');
+    advance(3); return; }
+  if((m=s.match(/^(?:mob|mobility)\s*(\d)$/))){ chart[cur.n].mobility=Math.min(3,+m[1]); render(); log('Mobility '+m[1]+' → '+toothLabel(cur.n),'ok'); return; }
+  if((m=s.match(/^(?:furc|furcation)\s*(\d)$/))){
+    if(!has(furcSites(cur.n,cur.surf),cur.p)){ log('No furcation site here','err'); return; }
+    chart[cur.n][cur.surf].furc[cur.p]=Math.min(3,+m[1]); render(); log('Furcation '+m[1]+' → '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if((m=s.match(/^mgj\s*(\d{1,2})$/))){
+    if(!hasMgj(cur.n,cur.surf)){ log('MGJ not charted on this surface','err'); return; }
+    chart[cur.n][cur.surf].mgj.C=+m[1]; render(); log('MGJ '+m[1]+' → '+toothLabel(cur.n),'ok'); return; }
+  if((m=s.match(/^gi\s*(\d)$/))){ chart[cur.n][cur.surf].gi[cur.p]=Math.min(3,+m[1]); render(); log('Gingival index '+m[1],'ok'); return; }
+  if(/^(b|bleed|bleeding)$/.test(s)){ chart[cur.n][cur.surf].bop[cur.p]=true; render(); log('Bleeding → '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if(/^(s|sup|suppuration|pus)$/.test(s)){ chart[cur.n][cur.surf].sup[cur.p]=true; render(); log('Suppuration → '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if(/^(p|plaque)$/.test(s)){ chart[cur.n][cur.surf].plq[cur.p]=true; render(); log('Plaque → '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if(/^(c|calc|calculus)$/.test(s)){ chart[cur.n][cur.surf].clc[cur.p]=true; render(); log('Calculus → '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if(/^(missing|extracted)$/.test(s)){ chart[cur.n].status='missing'; rebuildSeq(); render(); log(toothLabel(cur.n)+' marked missing','ok'); return; }
+  if(/^implant$/.test(s)){ chart[cur.n].status='implant'; rebuildSeq(); render(); log(toothLabel(cur.n)+' marked implant','ok'); return; }
+  if(/^(present|natural)$/.test(s)){ chart[cur.n].status='present'; rebuildSeq(); render(); log(toothLabel(cur.n)+' marked present','ok'); return; }
+  if(/^crown$/.test(s)){ chart[cur.n].crown=!chart[cur.n].crown; render(); log(toothLabel(cur.n)+' crown '+(chart[cur.n].crown?'on':'off'),'ok'); return; }
+  if(/^next$/.test(s)){ advance(1); log('→ '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  if(/^back$/.test(s)){ advance(-1); log('→ '+toothLabel(cur.n)+' '+cur.p,'ok'); return; }
+  log('Not understood: "'+raw.trim()+'"','err');
+}
+document.getElementById('cmdGo').addEventListener('click',function(){
+  var el=document.getElementById('cmdIn'); runCommand(el.value); el.value=''; el.focus();
+});
+document.getElementById('cmdIn').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){ runCommand(e.target.value); e.target.value=''; }
+});
+document.getElementById('btnCopy').addEventListener('click',function(){
+  var payload={
+    exam:{date:document.getElementById('examdate').value,provider:document.getElementById('prov').value,
+      probe:document.getElementById('probe').value,sequence:seqMode,numbering:numsys,
+      convention:'GM positive = recession apical to CEJ; CAL = PD + GM'},
+    indices:metrics(), teeth:chart };
+  var txt=JSON.stringify(payload,null,2), btn=document.getElementById('btnCopy');
+  function done(ok){ btn.textContent=ok?'Copied':'Copy failed'; setTimeout(function(){btn.textContent='Copy exam JSON';},1600); }
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function(){done(true);},function(){done(false);});
+  else done(false);
+});
+
+render();
+chartEl.focus();
+</script>
+
+</body>
+</html>
