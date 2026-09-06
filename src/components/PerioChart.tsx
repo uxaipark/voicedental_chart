@@ -198,7 +198,8 @@ function NumbersRow({ teeth, chart, cursor, dispatch, numbering, arch, shown }: 
     })
   return (
     <>
-      <div className="rl">
+      {/* Centred in the label gutter: it belongs to the whole arch, not to a row. */}
+      <div className="rl mid">
         <button
           className="toothvis"
           onClick={() => dispatch({ type: 'setTeethShown', arch })}
