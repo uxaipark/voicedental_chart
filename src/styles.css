@@ -85,9 +85,9 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) var(--rail-r) minmax(0,1fr);
   gap:var(--main-gap);padding:14px 18px 8px;align-items:start;
 }
-/* Collapsed, the rail leaves a sliver — the chart keeps its width and the
-   whole layout slides left rather than stretching. */
-.main.rail-min{grid-template-columns:var(--rail-min) minmax(0,var(--chart-card)) var(--rail-r) minmax(0,1fr)}
+/* Both flanks fold away together, leaving a sliver to bring them back. The
+   chart keeps its width; the layout slides left rather than stretching. */
+.main.rail-min{grid-template-columns:var(--rail-min) minmax(0,var(--chart-card)) minmax(0,1fr)}
 @media (max-width:1560px){
   :root{--rail-l:220px}
   .main{grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) minmax(0,1fr)}

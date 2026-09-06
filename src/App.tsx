@@ -46,7 +46,7 @@ function ChartStub({ view, onBack }: { view: 'implant' | 'restorative'; onBack: 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState)
   const [railView, setRailView] = useState<'clinical' | 'record'>('clinical')
-  const [railOpen, setRailOpen] = useState(true)
+  const [panelsOpen, setPanelsOpen] = useState(true)
   // One exam per patient per day; the key is what a reopened tab recovers by.
   const examKey = `1023-44871|${state.meta.date}`
   const { save, saveExam, filed } = usePersistence(state, dispatch, examKey)
@@ -90,11 +90,11 @@ export default function App() {
         onFormFactor={setFormFactor}
       />
 
-      <div className={`main${railOpen ? '' : ' rail-min'}`}>
-        {!railOpen && <RailStrip onExpand={() => setRailOpen(true)} />}
-        {railOpen && (
+      <div className={`main${panelsOpen ? '' : ' rail-min'}`}>
+        {!panelsOpen && <RailStrip onExpand={() => setPanelsOpen(true)} />}
+        {panelsOpen && (
         <aside className="rail-l">
-          <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setRailOpen(false)} />
+          <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setPanelsOpen(false)} />
           {railView === 'clinical' ? (
             <>
               <Panel {...panel('provider', 'Provider', meta.provider.replace(/^(RDH|Dr\.)\s/, ''))}>
@@ -136,6 +136,7 @@ export default function App() {
           <ChartStub view={state.activeChart} onBack={() => dispatch({ type: 'setChartView', view: 'perio' })} />
         )}
 
+        {panelsOpen && (
         <aside className="rail-r">
           <Panel {...panel('inspector', 'Site inspector', band(bandOf(state.cursor.n, state.cursor.surf)).label)}>
             <SiteInspector state={state} dispatch={dispatch} />
@@ -153,6 +154,7 @@ export default function App() {
             <Findings chart={state.chart} numbering={state.meta.numbering} dispatch={dispatch} />
           </Panel>
         </aside>
+        )}
       </div>
 
       {voiceDialog && (
