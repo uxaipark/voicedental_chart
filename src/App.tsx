@@ -15,6 +15,7 @@ import { EditHistory } from './components/EditHistory'
 import { SessionLog } from './components/SessionLog'
 import { Dictation } from './components/Dictation'
 import { VoiceDialog } from './components/VoiceDialogs'
+import { DevFrame, FORM_FACTORS } from './components/DevFrame'
 import type { VoiceDialogId } from './components/VoiceDialogs'
 import { useVoice } from './state/useVoice'
 import { DataDictionary } from './components/DataDictionary'
@@ -50,6 +51,7 @@ export default function App() {
   const { save, saveExam, filed } = usePersistence(state, dispatch, examKey)
   const voice = useVoice(state, dispatch)
   const [voiceDialog, setVoiceDialog] = useState<VoiceDialogId | null>(null)
+  const [formFactor, setFormFactor] = useState<string | null>(null)
   const meta = state.meta
   const findingCount = useMemo(() => collectFindings(state.chart).length, [state.chart])
   // Panels default to open; only what the clinician folded is stored.
@@ -73,7 +75,7 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
-  return (
+  const app = (
     <>
       <TopBar
         state={state}
@@ -83,6 +85,8 @@ export default function App() {
         onFileExam={saveExam}
         listening={voice.status.listening}
         onVoiceDialog={setVoiceDialog}
+        formFactor={formFactor}
+        onFormFactor={setFormFactor}
       />
 
       <div className="main">
@@ -162,5 +166,13 @@ export default function App() {
         classification.
       </p>
     </>
+  )
+
+  const factor = FORM_FACTORS.find((f) => f.id === formFactor)
+  if (!factor) return app
+  return (
+    <DevFrame factor={factor} onClose={() => setFormFactor(null)}>
+      {app}
+    </DevFrame>
   )
 }

@@ -13,6 +13,8 @@ interface TopBarProps {
   onFileExam: () => void
   listening: boolean
   onVoiceDialog: (id: VoiceDialogId) => void
+  formFactor: string | null
+  onFormFactor: (id: string | null) => void
 }
 
 const SAVE_TEXT: Record<SaveState['status'], string> = {
@@ -35,7 +37,7 @@ function SavePill({ save }: { save: SaveState }) {
   )
 }
 
-export function TopBar({ state, dispatch, save, filed, onFileExam, listening, onVoiceDialog }: TopBarProps) {
+export function TopBar({ state, dispatch, save, filed, onFileExam, listening, onVoiceDialog, formFactor, onFormFactor }: TopBarProps) {
   const [copied, setCopied] = useState<string | null>(null)
 
   const copyJson = async () => {
@@ -69,6 +71,8 @@ export function TopBar({ state, dispatch, save, filed, onFileExam, listening, on
         copied={copied}
         listening={listening}
         onVoiceDialog={onVoiceDialog}
+        formFactor={formFactor}
+        onFormFactor={onFormFactor}
         dispatch={dispatch}
       />
       <div className="spacer" />

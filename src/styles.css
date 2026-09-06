@@ -12,6 +12,7 @@
   --shadow:0 1px 2px rgba(15,23,32,.06),0 6px 18px rgba(15,23,32,.05);
   --cw:18px; --gut:124px; --gap:22px;
   --rail-l:232px; --rail-r:292px; --main-gap:14px;
+  --vph:100vh;   /* the frame overrides this when previewing a form factor */
   /* The arch decides the chart's width: gutter + 48 site columns + the midline. */
   --arch-w:calc(var(--gut) + 48 * var(--cw) + var(--gap));
   --chart-card:calc(var(--arch-w) + 26px);   /* card body padding + borders */
@@ -251,7 +252,7 @@ table.spec tbody tr:hover td:not(.grp){background:var(--surface-2)}
 /* ---------- base (was supplied by the artifact host in the single-file build) ---------- */
 html { color-scheme: light dark; }
 body { margin: 0; }
-#root { min-height: 100vh; }
+#root { min-height: var(--vph); }
 
 /* ---------- per-arch tooth visibility ---------- */
 .rl.mid{justify-content:center;gap:7px;padding-right:0}
@@ -321,7 +322,7 @@ body { margin: 0; }
   border:1px solid color-mix(in srgb,var(--crit) 24%,transparent);
 }
 .briefalert b{color:var(--crit)}
-.rail-l .hlist{max-height:calc(100vh - 340px)}
+.rail-l .hlist{max-height:calc(var(--vph) - 340px)}
 
 /* ---------- time machine ---------- */
 .timemachine{
@@ -445,7 +446,7 @@ body { margin: 0; }
   position:absolute;top:32px;left:0;z-index:60;width:288px;padding:6px;
   border:1px solid var(--line-2);border-radius:10px;background:var(--surface);
   box-shadow:0 4px 8px rgba(15,23,32,.07),0 18px 40px rgba(15,23,32,.14);
-  max-height:calc(100vh - 74px);overflow-y:auto;
+  max-height:calc(var(--vph) - 74px);overflow-y:auto;
 }
 .menuitem{
   display:flex;align-items:flex-start;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:7px;
@@ -615,3 +616,28 @@ input.wide{width:100%;margin-top:4px}
 .installrow{display:flex;align-items:center;gap:10px}
 .installrow span{flex:1}
 .installrow .chip{flex:none}
+
+/* ---------- form-factor preview ---------- */
+.devstage{
+  position:fixed;inset:0;z-index:300;overflow:auto;
+  background:var(--surface-3);
+  display:flex;flex-direction:column;align-items:center;
+}
+.devbar{
+  position:sticky;top:0;z-index:2;align-self:stretch;
+  display:flex;align-items:center;gap:10px;height:46px;padding:0 16px;
+  background:var(--surface);border-bottom:1px solid var(--line-2);
+}
+.dv-tag{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.devbar strong{font-size:13px;font-weight:600}
+.dv-hint{font-size:11px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dv-scale{margin-left:auto;font-size:11.5px;color:var(--ink-2);
+  padding:2px 7px;border-radius:5px;background:var(--surface-3);border:1px solid var(--line)}
+.devscroll{position:relative;height:0;overflow:visible;align-self:flex-start;margin:12px 0 0 12px}
+.devframe{
+  transform-origin:top left;overflow:auto;
+  background:var(--ground);border:1px solid var(--line-2);border-radius:6px;
+  box-shadow:0 8px 28px rgba(15,23,32,.18);
+}
+.devspacer{flex:none;margin:12px}
+.menunote{margin:8px 9px 4px;font-size:10.5px;line-height:1.5;color:var(--ink-3)}

@@ -137,6 +137,16 @@ dependency. Chrome's default path streams audio to its servers, so
 with the model's install state; for a chart holding patient data that choice
 belongs in front of the clinician rather than in a default.
 
+## Checking the layout at other sizes
+
+**Dev ▸ Form factor** renders the whole app at a chosen viewport — FHD, 4K at
+100 % and at the 150 % it is usually run, and iPad Pro in both orientations —
+and scales it to fit the window. A page cannot resize the window it is in, and
+a 4K viewport does not fit on most screens anyway, so this is the same approach
+the browser's own device toolbar takes. Viewport units inside follow the frame
+rather than the real window, so panel heights measure what they would measure
+on the device.
+
 ## Conventions
 
 - **GM** positive = recession apical to the CEJ; negative = margin coronal to it.

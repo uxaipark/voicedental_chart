@@ -4,6 +4,7 @@ import type { Action, AppState, ChartView } from '../state/chartReducer'
 import { CHART_VIEWS } from '../state/chartReducer'
 import type { Numbering } from '../domain/types'
 import { VOICE_MENU } from './VoiceDialogs'
+import { FORM_FACTORS } from './DevFrame'
 import type { VoiceDialogId } from './VoiceDialogs'
 
 const NUMBERINGS: Array<{ id: Numbering; label: string; hint: string }> = [
@@ -12,8 +13,8 @@ const NUMBERINGS: Array<{ id: Numbering; label: string; hint: string }> = [
   { id: 'palmer', label: 'Palmer UR/UL/LL/LR', hint: 'Quadrant letters with 1–8' },
 ]
 
-type MenuId = 'chart' | 'numbering' | 'view' | 'voice' | 'exam'
-const ORDER: MenuId[] = ['chart', 'numbering', 'view', 'voice', 'exam']
+type MenuId = 'chart' | 'numbering' | 'view' | 'voice' | 'exam' | 'dev'
+const ORDER: MenuId[] = ['chart', 'numbering', 'view', 'voice', 'exam', 'dev']
 
 interface Props {
   active: ChartView
@@ -26,12 +27,14 @@ interface Props {
   copied: string | null
   listening: boolean
   onVoiceDialog: (id: VoiceDialogId) => void
+  formFactor: string | null
+  onFormFactor: (id: string | null) => void
   dispatch: (a: Action) => void
 }
 
 const clock = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
 
-export function TopMenu({ active, editCount, numbering, teethShown, filed, onFileExam, onCopyJson, copied, listening, onVoiceDialog, dispatch }: Props) {
+export function TopMenu({ active, editCount, numbering, teethShown, filed, onFileExam, onCopyJson, copied, listening, onVoiceDialog, formFactor, onFormFactor, dispatch }: Props) {
   const [open, setOpen] = useState<MenuId | null>(null)
   const [confirming, setConfirming] = useState(false)
   const bar = useRef<HTMLDivElement>(null)
@@ -205,6 +208,29 @@ export function TopMenu({ active, editCount, numbering, teethShown, filed, onFil
             </span>
           </button>
         )}
+      </Menu>
+
+      <Menu id="dev" label="Dev" badge={formFactor ? 'preview' : undefined}>
+        <div className="menugroup">Form factor</div>
+        <Choice
+          checked={!formFactor}
+          label="Fit the window"
+          hint="No preview — the app uses whatever room it has"
+          onPick={() => { onFormFactor(null); setOpen(null) }}
+        />
+        {FORM_FACTORS.map((f) => (
+          <Choice
+            key={f.id}
+            checked={formFactor === f.id}
+            label={f.label}
+            hint={f.hint}
+            onPick={() => { onFormFactor(f.id); setOpen(null) }}
+          />
+        ))}
+        <p className="menunote">
+          A page cannot resize the window it is in, so the layout is rendered at that exact viewport and scaled to fit
+          here — the same trick the browser's own device toolbar uses.
+        </p>
       </Menu>
     </div>
   )
