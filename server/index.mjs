@@ -1,5 +1,45 @@
 import { createServer } from 'node:http'
+import { createReadStream, existsSync, statSync } from 'node:fs'
+import { extname, join, normalize, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { appendEdits, commitExam, listExams, loadDraft, readEdits, readExam, saveDraft, stats, DB_PATH } from './db.mjs'
+
+const HERE = dirname(fileURLToPath(import.meta.url))
+const DIST = join(HERE, '..', 'dist')
+
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
+  '.woff2': 'font/woff2',
+}
+
+/**
+ * The built app is served by the same process as the API, so the service is one
+ * command and one port. Without a build the API still runs on its own and the
+ * Vite dev server proxies to it.
+ */
+function serveStatic(req, res, pathname) {
+  if (!existsSync(DIST)) return false
+  const rel = normalize(decodeURIComponent(pathname)).replace(/^(\.\.[/\\])+/, '')
+  let file = join(DIST, rel)
+  if (!file.startsWith(DIST)) return false
+  if (!existsSync(file) || statSync(file).isDirectory()) file = join(DIST, 'index.html')
+  if (!existsSync(file)) return false
+  const ext = extname(file)
+  res.writeHead(200, {
+    'content-type': TYPES[ext] ?? 'application/octet-stream',
+    // Hashed asset names may be cached hard; the entry document may not.
+    'cache-control': rel.startsWith('assets/') ? 'public, max-age=31536000, immutable' : 'no-cache',
+  })
+  createReadStream(file).pipe(res)
+  return true
+}
 
 const PORT = Number(process.env.PERIO_PORT ?? 5181)
 const MAX_BODY = 8 * 1024 * 1024 // a full 32-tooth draft is ~60 kB; this is room to spare
@@ -69,6 +109,8 @@ const server = createServer(async (req, res) => {
       }
     }
 
+    if (req.method === 'GET' && !path.startsWith('/api/') && serveStatic(req, res, path)) return
+
     json(res, 404, { error: 'not found' })
   } catch (err) {
     json(res, 500, { error: String(err?.message ?? err) })
@@ -76,6 +118,7 @@ const server = createServer(async (req, res) => {
 })
 
 server.listen(PORT, () => {
-  console.log(`perio api   http://localhost:${PORT}`)
-  console.log(`sqlite      ${DB_PATH}`)
+  const built = existsSync(DIST)
+  console.log(`voice dental chart  http://localhost:${PORT}${built ? '' : '   (api only — run `npm run build`)'}`)
+  console.log(`sqlite              ${DB_PATH}`)
 })

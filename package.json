@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "build:artifact": "npm run build && node scripts/build-artifact.mjs",
     "dev:web": "vite",
-    "dev:api": "node server/index.mjs"
+    "dev:api": "node server/index.mjs",
+    "start": "bin/voicedental start",
+    "stop": "bin/voicedental stop",
+    "restart": "bin/voicedental restart",
+    "status": "bin/voicedental status"
   },
   "dependencies": {
     "react": "^18.3.1",

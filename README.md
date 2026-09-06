@@ -33,11 +33,36 @@ card, where speech and typing enter the same pipeline.
 ## Running it
 
 ```bash
-npm install
-npm run dev            # API on :5181 and the app on :5180, together
+bin/voicedental start     # build if needed, then serve on http://localhost:5181
+bin/voicedental status    # is it up, and what is in the database
+bin/voicedental stop
+bin/voicedental restart
+bin/voicedental logs      # follow the log
+bin/voicedental dev       # Vite plus the API, with hot reload
+```
+
+`npm start` / `npm stop` / `npm run status` call the same script. The API and
+the built app are served by **one process on one port**, so the service is a
+single thing to start, stop and look at — and the app talks to the API on its
+own origin, with no proxy in the way.
+
+`start` rebuilds when a source file is newer than the bundle, so it is always
+serving what is actually in the tree. It refuses to start over a port that
+something else already holds rather than half-starting; set `PERIO_PORT` to
+move it.
+
+To have it come up by itself:
+
+```bash
+bin/voicedental install     # macOS LaunchAgent — starts at login, restarts if it dies
+bin/voicedental uninstall
+```
+
+For development the dev server is still the better loop:
+
+```bash
+npm run dev            # API on :5181 and Vite on :5180, together
 npm run dev:web        # app only — persistence falls back to localStorage
-npm run dev:api        # API only
-npm run build          # type-check + production bundle
 npm run build:artifact # single inlined HTML file for publishing
 ```
 

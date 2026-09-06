@@ -2,6 +2,7 @@ node_modules
 dist
 artifact
 tsconfig.tsbuildinfo
+.run
 
 # The database ships with the repo — it holds the demonstration exam and the
 # edits made while building it, nothing else. Its WAL sidecars are transient.

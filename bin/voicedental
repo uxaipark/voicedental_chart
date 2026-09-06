@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+#
+# Run the Voice Dental Chart service.
+#
+#   bin/voicedental start     build if needed, then serve on $PERIO_PORT
+#   bin/voicedental stop      stop it
+#   bin/voicedental restart   stop, rebuild, start
+#   bin/voicedental status    is it up, and what is in the database
+#   bin/voicedental logs      follow the log
+#   bin/voicedental dev       Vite plus the API, with hot reload
+#   bin/voicedental install   start it at login (macOS LaunchAgent)
+#   bin/voicedental uninstall stop doing that
+#
+# The API and the built app are served by one process on one port, so the
+# service is a single thing to start, stop and look at.
+
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+PORT="${PERIO_PORT:-5181}"
+RUN_DIR="$ROOT/.run"
+PID_FILE="$RUN_DIR/service.pid"
+LOG_FILE="$RUN_DIR/service.log"
+LABEL="com.voicedental.chart"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+
+mkdir -p "$RUN_DIR"
+
+say()  { printf '  %s\n' "$*"; }
+fail() { printf '  %s\n' "$*" >&2; exit 1; }
+
+running_pid() {
+  [ -f "$PID_FILE" ] || return 1
+  local pid; pid="$(cat "$PID_FILE" 2>/dev/null || true)"
+  [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null || return 1
+  echo "$pid"
+}
+
+port_pid() { lsof -ti "tcp:$PORT" -sTCP:LISTEN 2>/dev/null | head -1; }
+
+ensure_deps() {
+  if [ ! -d node_modules ]; then
+    say "installing dependencies…"
+    npm install --no-audit --no-fund >/dev/null
+  fi
+}
+
+# Rebuild when a source file is newer than the bundle, so `start` is always
+# serving what is actually in the tree.
+needs_build() {
+  [ -d dist ] || return 0
+  local newest
+  newest="$(find src server index.html vite.config.ts package.json -type f -newer dist/index.html 2>/dev/null | head -1)"
+  [ -n "$newest" ]
+}
+
+cmd_start() {
+  if pid="$(running_pid)"; then say "already running (pid $pid) — http://localhost:$PORT"; return; fi
+  if other="$(port_pid)" && [ -n "$other" ]; then
+    fail "port $PORT is already taken by pid $other. Stop it, or set PERIO_PORT."
+  fi
+  ensure_deps
+  if needs_build; then
+    say "building…"
+    npm run build >/dev/null
+  fi
+  PERIO_PORT="$PORT" nohup node server/index.mjs >>"$LOG_FILE" 2>&1 &
+  echo $! >"$PID_FILE"
+  sleep 0.6
+  if ! running_pid >/dev/null; then
+    tail -20 "$LOG_FILE" >&2
+    fail "the service did not start — see $LOG_FILE"
+  fi
+  say "http://localhost:$PORT   (pid $(cat "$PID_FILE"))"
+}
+
+cmd_stop() {
+  local pid
+  if pid="$(running_pid)"; then
+    kill "$pid" 2>/dev/null || true
+    for _ in 1 2 3 4 5 6 7 8 9 10; do kill -0 "$pid" 2>/dev/null || break; sleep 0.2; done
+    kill -9 "$pid" 2>/dev/null || true
+    say "stopped (pid $pid)"
+  else
+    say "not running"
+  fi
+  rm -f "$PID_FILE"
+}
+
+cmd_status() {
+  if pid="$(running_pid)"; then
+    say "running   pid $pid   http://localhost:$PORT"
+    curl -fsS "http://localhost:$PORT/api/health" 2>/dev/null \
+      | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);
+          console.log(`  database  ${j.path}`);
+          console.log(`  contents  ${j.exams} exams · ${j.drafts} drafts · ${j.edits} edits`);})' \
+      || say "the API did not answer"
+  else
+    say "not running"
+    [ -n "$(port_pid || true)" ] && say "note: something else is listening on $PORT (pid $(port_pid))"
+  fi
+}
+
+cmd_logs() { touch "$LOG_FILE"; tail -f "$LOG_FILE"; }
+
+cmd_dev() { ensure_deps; exec npm run dev; }
+
+cmd_install() {
+  [ "$(uname)" = "Darwin" ] || fail "install is macOS only; use a systemd unit elsewhere"
+  mkdir -p "$(dirname "$PLIST")"
+  cat >"$PLIST" <<PLIST_EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>$LABEL</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>$(command -v node)</string>
+    <string>$ROOT/server/index.mjs</string>
+  </array>
+  <key>WorkingDirectory</key><string>$ROOT</string>
+  <key>EnvironmentVariables</key><dict><key>PERIO_PORT</key><string>$PORT</string></dict>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>StandardOutPath</key><string>$LOG_FILE</string>
+  <key>StandardErrorPath</key><string>$LOG_FILE</string>
+</dict>
+</plist>
+PLIST_EOF
+  ensure_deps
+  needs_build && npm run build >/dev/null
+  launchctl unload "$PLIST" 2>/dev/null || true
+  launchctl load "$PLIST"
+  say "installed — starts at login, and is running now on http://localhost:$PORT"
+  say "$PLIST"
+}
+
+cmd_uninstall() {
+  [ -f "$PLIST" ] || { say "not installed"; return; }
+  launchctl unload "$PLIST" 2>/dev/null || true
+  rm -f "$PLIST"
+  say "uninstalled — it will no longer start at login"
+}
+
+case "${1:-start}" in
+  start)     cmd_start ;;
+  stop)      cmd_stop ;;
+  restart)   cmd_stop; cmd_start ;;
+  status)    cmd_status ;;
+  logs)      cmd_logs ;;
+  dev)       cmd_dev ;;
+  install)   cmd_install ;;
+  uninstall) cmd_uninstall ;;
+  *) sed -n '3,20p' "$0" | sed 's/^# \{0,1\}//' ; exit 1 ;;
+esac
