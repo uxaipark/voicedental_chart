@@ -3,6 +3,8 @@ import type { ReactElement } from 'react'
 import type { Band } from '../domain/bands'
 import type { Chart } from '../domain/types'
 import type { Action } from '../state/chartReducer'
+import type { Density } from '../domain/density'
+import { toothColumn } from '../domain/density'
 import { BAND_H, CEJ_DOWN, CEJ_UP, COL, HALF_W, MM, SITE, enamelRamp, lobeRamp, rootRamp, toothShape } from '../domain/geometry'
 import { siteOrder } from '../domain/numbering'
 import { anatomy, furcationSites } from '../domain/anatomy'
@@ -14,6 +16,7 @@ interface Props {
   chart: Chart
   gradKey: string
   dispatch?: (a: Action) => void
+  density: Density
 }
 
 const Ramp = ({ id, horizontal, stops }: { id: string; horizontal: boolean; stops: ReturnType<typeof rootRamp> }) => (
@@ -82,7 +85,7 @@ const Rule = memo(function Rule({ cy, dir }: { cy: number; dir: number }) {
 })
 
 /** Gingival margin and attachment level, with the pocket band between them. */
-function PocketGraph({ band, teeth, chart, cy, dir }: Props & { cy: number; dir: number }) {
+function PocketGraph({ band, teeth, chart, cy, dir }: LayerProps) {
   const runs = useMemo(() => {
     const out: Array<Array<{ x: number; gy: number; py: number; bop: boolean; sup: boolean }>> = []
     let run: (typeof out)[number] = []
@@ -131,7 +134,9 @@ function PocketGraph({ band, teeth, chart, cy, dir }: Props & { cy: number; dir:
 }
 
 /** Glickman furcation triangles, placed on the root trunk. */
-function FurcationMarks({ band, teeth, chart, cy, dir }: Props & { cy: number; dir: number }) {
+type LayerProps = Omit<Props, 'density' | 'dispatch'> & { cy: number; dir: number }
+
+function FurcationMarks({ band, teeth, chart, cy, dir }: LayerProps) {
   const marks: ReactElement[] = []
   teeth.forEach((n, i) => {
     const t = chart[n]
@@ -155,14 +160,35 @@ function FurcationMarks({ band, teeth, chart, cy, dir }: Props & { cy: number; d
   return <g pointerEvents="none">{marks}</g>
 }
 
-export function ToothBand({ band, teeth, chart, gradKey, dispatch }: Props) {
+export function ToothBand({ band, teeth, chart, gradKey, dispatch, density }: Props) {
+  // A tablet has no right button, so a double tap does the same thing. With
+  // touch-action on the row the browser stops reserving the second tap for
+  // zoom and reports it as a dblclick, which is one path for mouse and touch
+  // rather than a hand-rolled timer racing the browser's own.
+  const cycle = (n: number) => {
+    if (!dispatch) return
+    dispatch({ type: 'setCursor', at: { n, surf: band.surf, p: siteOrder(n)[1] } })
+    dispatch({ type: 'cycleTooth', n })
+  }
+
   const up = band.above
   const cy = up ? CEJ_UP : CEJ_DOWN
   const dir = up ? -1 : 1
   const signature = teeth.map((n) => `${chart[n].status[0]}${chart[n].crown ? 'c' : ''}`).join('')
 
+  // The teeth are drawn once at full size and the viewBox does the scaling, so
+  // a tighter grid shrinks the drawing rather than redrawing it.
+  const shown = toothColumn(density) * 8
+  const k = shown / HALF_W
+
   return (
-    <svg width={HALF_W} height={BAND_H} viewBox={`0 0 ${HALF_W} ${BAND_H}`} role="img" aria-label={`${band.label} teeth and roots`}>
+    <svg
+      width={shown}
+      height={Math.round(BAND_H * k)}
+      viewBox={`0 0 ${HALF_W} ${BAND_H}`}
+      role="img"
+      aria-label={`${band.label} teeth and roots`}
+    >
       <Defs k={gradKey} concave={band.surf === 'L'} />
       <Rule cy={cy} dir={dir} />
       <line x1={0} y1={cy} x2={HALF_W} y2={cy} stroke="var(--ink-3)" strokeWidth={1} strokeDasharray="3 3" opacity={0.55} pointerEvents="none" />
@@ -172,15 +198,8 @@ export function ToothBand({ band, teeth, chart, gradKey, dispatch }: Props) {
           key={n}
           transform={`translate(${i * COL + COL / 2},${cy})`}
           style={{ cursor: dispatch ? 'context-menu' : undefined }}
-          onContextMenu={
-            dispatch
-              ? (e) => {
-                  e.preventDefault()
-                  dispatch({ type: 'setCursor', at: { n, surf: band.surf, p: siteOrder(n)[1] } })
-                  dispatch({ type: 'cycleTooth', n })
-                }
-              : undefined
-          }
+          onContextMenu={dispatch ? (e) => { e.preventDefault(); cycle(n) } : undefined}
+          onDoubleClick={dispatch ? (e) => { e.preventDefault(); cycle(n) } : undefined}
         >
           {/*
             A missing tooth is drawn as an unfilled outline, so its interior is

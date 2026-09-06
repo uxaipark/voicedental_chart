@@ -15,6 +15,7 @@ interface TopBarProps {
   onVoiceDialog: (id: VoiceDialogId) => void
   formFactor: string | null
   onFormFactor: (id: string | null) => void
+  densityNow: string
 }
 
 const SAVE_TEXT: Record<SaveState['status'], string> = {
@@ -37,7 +38,7 @@ function SavePill({ save }: { save: SaveState }) {
   )
 }
 
-export function TopBar({ state, dispatch, save, filed, onFileExam, listening, onVoiceDialog, formFactor, onFormFactor }: TopBarProps) {
+export function TopBar({ state, dispatch, save, filed, onFileExam, listening, onVoiceDialog, formFactor, onFormFactor, densityNow }: TopBarProps) {
   const [copied, setCopied] = useState<string | null>(null)
 
   const copyJson = async () => {
@@ -65,6 +66,8 @@ export function TopBar({ state, dispatch, save, filed, onFileExam, listening, on
         editCount={state.history.length}
         numbering={state.meta.numbering}
         teethShown={state.teethShown}
+        density={state.density}
+        densityNow={densityNow}
         filed={filed}
         onFileExam={onFileExam}
         onCopyJson={copyJson}

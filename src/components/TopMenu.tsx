@@ -5,6 +5,8 @@ import { CHART_VIEWS } from '../state/chartReducer'
 import type { Numbering } from '../domain/types'
 import { VOICE_MENU } from './VoiceDialogs'
 import { FORM_FACTORS } from './DevFrame'
+import { DENSITIES } from '../domain/density'
+import type { DensityMode } from '../domain/density'
 import type { VoiceDialogId } from './VoiceDialogs'
 
 const NUMBERINGS: Array<{ id: Numbering; label: string; hint: string }> = [
@@ -21,6 +23,8 @@ interface Props {
   editCount: number
   numbering: Numbering
   teethShown: AppState['teethShown']
+  density: DensityMode
+  densityNow: string
   filed: { id: number; at: number } | null
   onFileExam: () => void
   onCopyJson: () => void
@@ -34,7 +38,7 @@ interface Props {
 
 const clock = (ms: number) => new Date(ms).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false })
 
-export function TopMenu({ active, editCount, numbering, teethShown, filed, onFileExam, onCopyJson, copied, listening, onVoiceDialog, formFactor, onFormFactor, dispatch }: Props) {
+export function TopMenu({ active, editCount, numbering, teethShown, density, densityNow, filed, onFileExam, onCopyJson, copied, listening, onVoiceDialog, formFactor, onFormFactor, dispatch }: Props) {
   const [open, setOpen] = useState<MenuId | null>(null)
   const [confirming, setConfirming] = useState(false)
   const bar = useRef<HTMLDivElement>(null)
@@ -131,6 +135,24 @@ export function TopMenu({ active, editCount, numbering, teethShown, filed, onFil
           hint="Just the measurement rows — denser, faster to scan"
           onPick={() => pick({ type: 'setTeethShown', shown: false })}
         />
+        <div className="menusep" />
+        <div className="menugroup">Grid density</div>
+        <Choice
+          checked={density === 'auto'}
+          label={`Automatic · ${densityNow}`}
+          hint="Tightens the columns when the window cannot hold the full size"
+          onPick={() => pick({ type: 'setDensity', density: 'auto' })}
+        />
+        {DENSITIES.map((d) => (
+          <Choice
+            key={d.id}
+            checked={density === d.id}
+            label={d.label}
+            hint={d.hint}
+            onPick={() => pick({ type: 'setDensity', density: d.id })}
+          />
+        ))}
+
         <div className="menusep" />
         <Choice
           checked={teethShown.U}

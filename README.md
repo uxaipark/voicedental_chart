@@ -145,11 +145,17 @@ what is beside it and never where it is. Folded, the edges of the window are
 live: hovering either one slides that panel back over the chart for as long as
 the cursor stays on it, and clicking it pins the layout open again.
 
-The chart column is the arch's width and does not move — it neither stretches
-into spare room nor squeezes when there is none. Six sites on 32 teeth cannot
-be read off a compressed grid, so when the window is below what the layout
-needs the app says so and gives the number, instead of quietly shrinking into
-something that invites the wrong tooth getting the reading.
+The chart column is the arch's width and does not stretch into spare room. When
+the room runs out it does not squeeze either: the grid steps to a tighter
+density — narrower site columns and gutter, with the tooth drawings scaling to
+match — so an iPad Pro shows the whole arch rather than half of one. One table
+in `domain/density.ts` drives both the CSS grid and the SVG, so the teeth
+cannot end up measuring columns that have since changed. Below the tightest
+density the app states the requirement and the shortfall instead of quietly
+degrading into something that invites the wrong tooth getting the reading.
+
+**Dev ▸ Form factor** is how that was checked: iPad Pro landscape holds the
+full-size grid, portrait steps to compact, and both fit the frame whole.
 
 ## Checking the layout at other sizes
 
@@ -169,6 +175,9 @@ on the device.
 - The CEJ scallop on each tooth meets the 0 mm reference line at the mid-facial.
 - Roots always face the adjacent data rows, so each band's numbers sit beside
   the part of the tooth they describe.
+- Right-click a tooth to cycle missing → implant → crown → present. On a tablet
+  a double tap does the same; the tooth rows set `touch-action: manipulation`
+  so the second tap cycles rather than zooming.
 
 The patient, the exam and every measurement are invented for demonstration.
 `data/perio.sqlite` ships with the repository so the app has something to open

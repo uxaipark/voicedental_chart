@@ -7,6 +7,7 @@ import { siteOrder } from '../domain/numbering'
 import { furcationSites, hasMgj } from '../domain/anatomy'
 import { sampleChart } from '../domain/sample'
 import type { Utterance, VocabRule, VoiceSettings } from '../domain/voice'
+import type { DensityMode } from '../domain/density'
 import { DEFAULT_VOICE } from '../domain/voice'
 
 export type ChartView = 'perio' | 'implant' | 'restorative'
@@ -25,6 +26,8 @@ export interface AppState {
   /** tooth graphics, per arch */
   teethShown: { U: boolean; L: boolean }
   activeChart: ChartView
+  /** how tightly the grid packs; 'auto' follows the room available */
+  density: DensityMode
   /** which collapsible panels are open, by id; absent means open */
   panels: Record<string, boolean>
   voice: VoiceSettings
@@ -50,6 +53,7 @@ export const initialState = (): AppState => ({
   optional: { ...DEFAULT_OPTIONAL },
   teethShown: { U: true, L: true },
   activeChart: 'perio',
+  density: 'auto',
   panels: {},
   voice: { ...DEFAULT_VOICE, vocabulary: DEFAULT_VOICE.vocabulary.map((v) => ({ ...v })) },
   utterances: [],
@@ -197,6 +201,7 @@ export type Action =
   | { type: 'redo' }
   | { type: 'seek'; to: number }
   | { type: 'setChartView'; view: ChartView }
+  | { type: 'setDensity'; density: DensityMode }
   | { type: 'resetToSample' }
   | { type: 'togglePanel'; id: string }
   | { type: 'setVoice'; patch: Partial<VoiceSettings> }
@@ -400,6 +405,9 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'setChartView':
       return { ...state, activeChart: action.view }
 
+    case 'setDensity':
+      return { ...state, density: action.density }
+
     case 'resetToSample': {
       // Everything the draft carries goes back to its opening state. The one
       // exception is the history counter: the server's edit log is append-only
@@ -425,6 +433,7 @@ export function reducer(state: AppState, action: Action): AppState {
         historyIndex: p.historyIndex ?? state.historyIndex,
         historySeq: p.historySeq ?? state.historySeq,
         activeChart: p.activeChart ?? state.activeChart,
+        density: p.density ?? state.density,
         panels: p.panels ?? state.panels,
         // Merge, never replace: a draft written before a setting existed would
         // otherwise drop it back to undefined.

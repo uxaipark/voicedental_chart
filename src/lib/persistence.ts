@@ -1,5 +1,6 @@
 import type { Chart, ExamMeta, HistoryEntry } from '../domain/types'
 import type { VoiceSettings } from '../domain/voice'
+import type { DensityMode } from '../domain/density'
 
 export interface DraftPayload {
   patientChartNo: string
@@ -8,6 +9,7 @@ export interface DraftPayload {
   optional: Record<string, boolean>
   teethShown: { U: boolean; L: boolean }
   panels: Record<string, boolean>
+  density: DensityMode
   voice: VoiceSettings
   historyIndex: number
   historySeq: number

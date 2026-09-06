@@ -17,6 +17,7 @@ import { Dictation } from './components/Dictation'
 import { VoiceDialog } from './components/VoiceDialogs'
 import { DevFrame, FORM_FACTORS } from './components/DevFrame'
 import { MIN_CHART_W, ViewportGate } from './components/ViewportGate'
+import { archWidth, byId, cardWidth, fitDensity } from './domain/density'
 import type { VoiceDialogId } from './components/VoiceDialogs'
 import { useVoice } from './state/useVoice'
 import { DataDictionary } from './components/DataDictionary'
@@ -87,6 +88,19 @@ export default function App() {
   const voice = useVoice(state, dispatch)
   const [voiceDialog, setVoiceDialog] = useState<VoiceDialogId | null>(null)
   const meta = state.meta
+  // One table drives the CSS grid and the tooth drawings, so a tighter chart
+  // cannot leave the teeth measuring the old columns.
+  const density = state.density === 'auto' ? fitDensity(shellW - 36) : byId(state.density)
+  // The derived widths are published too: a custom property resolves where it
+  // is declared, so a --arch-w defined on :root would keep using the :root --cw
+  // however this element overrides it.
+  const densityVars = {
+    ['--cw' as string]: `${density.cw}px`,
+    ['--gut' as string]: `${density.gut}px`,
+    ['--gap' as string]: `${density.gap}px`,
+    ['--arch-w' as string]: `${archWidth(density)}px`,
+    ['--chart-card' as string]: `${cardWidth(density)}px`,
+  }
   const findingCount = useMemo(() => collectFindings(state.chart).length, [state.chart])
   // Panels default to open; only what the clinician folded is stored.
   const panel = (id: string, title: string, extra?: React.ReactNode) => ({
@@ -155,7 +169,7 @@ export default function App() {
   const pin = () => { setPanelsOpen(true); setPeek(null) }
 
   const app = (
-    <div className="appshell" ref={shellRef}>
+    <div className="appshell" ref={shellRef} style={densityVars}>
       {shellW < MIN_CHART_W && !ignoreWidth && (
         <ViewportGate width={shellW} onOverride={() => setIgnoreWidth(true)} />
       )}
@@ -170,6 +184,7 @@ export default function App() {
         onVoiceDialog={setVoiceDialog}
         formFactor={formFactor}
         onFormFactor={setFormFactor}
+        densityNow={density.label.toLowerCase()}
       />
       </div>
 
@@ -190,7 +205,7 @@ export default function App() {
               <span className="eyebrow">click a cell · 0–9 value · B P C S mark · ← → ↑ ↓ move · Enter next · right-click a tooth to cycle its state</span>
             </div>
             <div className="card-b" style={{ padding: '4px 12px 2px' }}>
-              <PerioChart state={state} dispatch={dispatch} />
+              <PerioChart state={state} dispatch={dispatch} density={density} />
             </div>
           </section>
         ) : (

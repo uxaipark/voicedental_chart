@@ -4,8 +4,15 @@
  * fit. When the window is below what the layout needs, that is stated plainly
  * rather than left for the clinician to discover mid-exam.
  */
-export const MIN_CHART_W = 1100 // chart alone, side panels folded
-export const MIN_FULL_W = 1620 // chart with both panels pinned
+import { DENSITIES, cardWidth } from '../domain/density'
+
+const PAGE_PAD = 36
+const RAILS = 232 + 292 + 28
+
+/** The tightest grid still shows every tooth; below this the arch cannot fit. */
+export const MIN_CHART_W = cardWidth(DENSITIES[DENSITIES.length - 1]) + PAGE_PAD
+/** Room for the chart at full size with both panels pinned. */
+export const MIN_FULL_W = cardWidth(DENSITIES[0]) + RAILS + PAGE_PAD
 
 export function ViewportGate({ width, onOverride }: { width: number; onOverride: () => void }) {
   const short = MIN_CHART_W - width
@@ -23,7 +30,7 @@ export function ViewportGate({ width, onOverride }: { width: number; onOverride:
           <dt>This window</dt>
           <dd className="mono bad">{width} px</dd>
           <dt>Chart alone</dt>
-          <dd className="mono">{MIN_CHART_W} px<em>side panels folded</em></dd>
+          <dd className="mono">{MIN_CHART_W} px<em>tightest grid, panels folded</em></dd>
           <dt>Chart with panels</dt>
           <dd className="mono">{MIN_FULL_W} px<em>the layout as designed</em></dd>
         </dl>

@@ -56,6 +56,7 @@ export function usePersistence(state: AppState, dispatch: (a: Action) => void, e
         optional: state.optional,
         teethShown: state.teethShown,
         panels: state.panels,
+        density: state.density,
         voice: state.voice,
         historyIndex: state.historyIndex,
         historySeq: state.historySeq,
@@ -67,7 +68,7 @@ export function usePersistence(state: AppState, dispatch: (a: Action) => void, e
       setSave({ status: 'saved', store, at: Date.now() })
     }, DEBOUNCE_MS)
     return () => clearTimeout(timer.current)
-  }, [examKey, state.chart, state.meta, state.optional, state.teethShown, state.panels, state.voice, state.history, state.historyIndex, state.historySeq])
+  }, [examKey, state.chart, state.meta, state.optional, state.teethShown, state.panels, state.density, state.voice, state.history, state.historyIndex, state.historySeq])
 
   const saveExam = useCallback(async () => {
     setSave((s) => ({ ...s, status: 'saving' }))

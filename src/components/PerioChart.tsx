@@ -8,11 +8,13 @@ import { LOWER, UPPER, siteOrder, toothLabel } from '../domain/numbering'
 import { furcationSites, hasMgj } from '../domain/anatomy'
 import { computeMetrics } from '../domain/metrics'
 import { ToothBand } from './ToothBand'
+import type { Density } from '../domain/density'
 import { TimeMachine } from './TimeMachine'
 
 interface Props {
   state: AppState
   dispatch: (a: Action) => void
+  density: Density
 }
 
 const MARK_ROWS: MarkRow[] = ['bop', 'plq', 'clc', 'sup']
@@ -218,16 +220,16 @@ function NumbersRow({ teeth, chart, cursor, dispatch, numbering, arch, shown }: 
   )
 }
 
-function ToothRow({ b, chart, dispatch }: { b: Band; chart: Chart; dispatch: (a: Action) => void }) {
+function ToothRow({ b, chart, dispatch, density }: { b: Band; chart: Chart; dispatch: (a: Action) => void; density: Density }) {
   return (
     <>
       <div className="rl" />
       <div className="toothrow">
-        <ToothBand band={b} teeth={b.teeth.slice(0, 8)} chart={chart} gradKey={`${b.id}a`} dispatch={dispatch} />
+        <ToothBand band={b} teeth={b.teeth.slice(0, 8)} chart={chart} gradKey={`${b.id}a`} dispatch={dispatch} density={density} />
       </div>
       <div className="gapcell" />
       <div className="toothrow">
-        <ToothBand band={b} teeth={b.teeth.slice(8, 16)} chart={chart} gradKey={`${b.id}b`} dispatch={dispatch} />
+        <ToothBand band={b} teeth={b.teeth.slice(8, 16)} chart={chart} gradKey={`${b.id}b`} dispatch={dispatch} density={density} />
       </div>
     </>
   )
@@ -259,7 +261,7 @@ function SummaryBar({ chart }: { chart: Chart }) {
 
 /* ---------- the chart ---------------------------------------------------- */
 
-export function PerioChart({ state, dispatch }: Props) {
+export function PerioChart({ state, dispatch, density }: Props) {
   const { chart, cursor, optional, teethShown, meta } = state
 
   const entry = meta.entry
@@ -329,7 +331,7 @@ export function PerioChart({ state, dispatch }: Props) {
                 {activeRows(b1, optional).map((r) => (
                   <DataRow key={r} b={b1} row={r} chart={chart} cursor={cursor} dispatch={dispatch} />
                 ))}
-                {teethShown[arch] && <ToothRow b={b1} chart={chart} dispatch={dispatch} />}
+                {teethShown[arch] && <ToothRow b={b1} chart={chart} dispatch={dispatch} density={density} />}
               </div>
               <div className="grid">
                 <NumbersRow
@@ -338,7 +340,7 @@ export function PerioChart({ state, dispatch }: Props) {
                 />
               </div>
               <div className="grid">
-                {teethShown[arch] && <ToothRow b={b2} chart={chart} dispatch={dispatch} />}
+                {teethShown[arch] && <ToothRow b={b2} chart={chart} dispatch={dispatch} density={density} />}
                 {activeRows(b2, optional).map((r) => (
                   <DataRow key={r} b={b2} row={r} chart={chart} cursor={cursor} dispatch={dispatch} />
                 ))}
