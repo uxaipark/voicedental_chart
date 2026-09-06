@@ -200,6 +200,7 @@ function NumbersRow({ teeth, chart, cursor, dispatch, numbering, arch, shown }: 
     <>
       {/* Centred in the label gutter: it belongs to the whole arch, not to a row. */}
       <div className="rl mid">
+        {/* Icon and label are one control, so the word is clickable too. */}
         <button
           className="toothvis"
           onClick={() => dispatch({ type: 'setTeethShown', arch })}
@@ -207,8 +208,8 @@ function NumbersRow({ teeth, chart, cursor, dispatch, numbering, arch, shown }: 
           title={shown ? `Hide the ${arch === 'U' ? 'upper' : 'lower'} teeth` : `Show the ${arch === 'U' ? 'upper' : 'lower'} teeth`}
         >
           <EyeIcon open={shown} />
+          <span>tooth</span>
         </button>
-        <span className="u">tooth</span>
       </div>
       {half(teeth.slice(0, 8))}
       <div className="gapcell" />
