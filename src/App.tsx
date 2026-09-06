@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
 import { initialState, reducer } from './state/chartReducer'
 import { usePersistence } from './state/usePersistence'
 import { CHART_VIEWS } from './state/chartReducer'
@@ -47,6 +47,22 @@ export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState)
   const [railView, setRailView] = useState<'clinical' | 'record'>('clinical')
   const [panelsOpen, setPanelsOpen] = useState(true)
+  const [peek, setPeek] = useState<'left' | 'right' | null>(null)
+  const barRef = useRef<HTMLDivElement>(null)
+
+  // The peeking panels hang below the top bar, whose height depends on how the
+  // menu wraps, so it is measured rather than assumed.
+  useLayoutEffect(() => {
+    const el = barRef.current
+    if (!el) return
+    const publish = () =>
+      document.documentElement.style.setProperty('--topbar-h', `${Math.round(el.getBoundingClientRect().height)}px`)
+    publish()
+    const ro = new ResizeObserver(publish)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
   // One exam per patient per day; the key is what a reopened tab recovers by.
   const examKey = `1023-44871|${state.meta.date}`
   const { save, saveExam, filed } = usePersistence(state, dispatch, examKey)
@@ -76,8 +92,54 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [])
 
+  const leftRail =
+    railView === 'clinical' ? (
+      <>
+        <Panel {...panel('provider', 'Provider', meta.provider.replace(/^(RDH|Dr\.)\s/, ''))}>
+          <ProviderCard state={state} dispatch={dispatch} />
+        </Panel>
+        <PatientCard />
+        <Panel {...panel('legend', 'Legend')}>
+          <Legend />
+        </Panel>
+        <Panel {...panel('examHistory', 'Exam history', '5 visits')}>
+          <ExamHistory />
+        </Panel>
+      </>
+    ) : (
+      <>
+        <PatientBrief />
+        <Panel {...panel('editHistory', 'Edit history', `${state.history.length.toLocaleString()} / ${HISTORY_LIMIT.toLocaleString()}`)}>
+          <EditHistory state={state} dispatch={dispatch} />
+        </Panel>
+        <Panel {...panel('sessionLog', 'Session log', `${state.log.filter((l) => l.kind === 'system').length}`)}>
+          <SessionLog state={state} />
+        </Panel>
+      </>
+    )
+
+  const rightRail = (
+    <>
+      <Panel {...panel('inspector', 'Site inspector', band(bandOf(state.cursor.n, state.cursor.surf)).label)}>
+        <SiteInspector state={state} dispatch={dispatch} />
+      </Panel>
+      <Panel {...panel('dictation', 'Dictation', voice.status.listening ? 'listening' : 'voice or typed')}>
+        <Dictation state={state} dispatch={dispatch} voice={voice} onOpenCommands={() => setVoiceDialog('commands')} />
+      </Panel>
+      <Panel {...panel('indices', 'Whole-mouth indices')}>
+        <Indices chart={state.chart} />
+      </Panel>
+      <Panel {...panel('findings', 'Findings', `${findingCount} items`)}>
+        <Findings chart={state.chart} numbering={state.meta.numbering} dispatch={dispatch} />
+      </Panel>
+    </>
+  )
+
+  const pin = () => { setPanelsOpen(true); setPeek(null) }
+
   const app = (
     <>
+      <div ref={barRef}>
       <TopBar
         state={state}
         dispatch={dispatch}
@@ -89,36 +151,13 @@ export default function App() {
         formFactor={formFactor}
         onFormFactor={setFormFactor}
       />
+      </div>
 
       <div className={`main${panelsOpen ? '' : ' rail-min'}`}>
-        {!panelsOpen && <RailStrip onExpand={() => setPanelsOpen(true)} />}
         {panelsOpen && (
         <aside className="rail-l">
           <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setPanelsOpen(false)} />
-          {railView === 'clinical' ? (
-            <>
-              <Panel {...panel('provider', 'Provider', meta.provider.replace(/^(RDH|Dr\.)\s/, ''))}>
-                <ProviderCard state={state} dispatch={dispatch} />
-              </Panel>
-              <PatientCard />
-              <Panel {...panel('legend', 'Legend')}>
-                <Legend />
-              </Panel>
-              <Panel {...panel('examHistory', 'Exam history', '5 visits')}>
-                <ExamHistory />
-              </Panel>
-            </>
-          ) : (
-            <>
-              <PatientBrief />
-              <Panel {...panel('editHistory', 'Edit history', `${state.history.length.toLocaleString()} / ${HISTORY_LIMIT.toLocaleString()}`)}>
-                <EditHistory state={state} dispatch={dispatch} />
-              </Panel>
-              <Panel {...panel('sessionLog', 'Session log', `${state.log.filter((l) => l.kind === 'system').length}`)}>
-                <SessionLog state={state} />
-              </Panel>
-            </>
-          )}
+          {leftRail}
         </aside>
         )}
 
@@ -136,26 +175,41 @@ export default function App() {
           <ChartStub view={state.activeChart} onBack={() => dispatch({ type: 'setChartView', view: 'perio' })} />
         )}
 
-        {panelsOpen && (
-        <aside className="rail-r">
-          <Panel {...panel('inspector', 'Site inspector', band(bandOf(state.cursor.n, state.cursor.surf)).label)}>
-            <SiteInspector state={state} dispatch={dispatch} />
-          </Panel>
+        {panelsOpen && <aside className="rail-r">{rightRail}</aside>}
 
-          <Panel {...panel('dictation', 'Dictation', voice.status.listening ? 'listening' : 'voice or typed')}>
-            <Dictation state={state} dispatch={dispatch} voice={voice} onOpenCommands={() => setVoiceDialog('commands')} />
-          </Panel>
-
-          <Panel {...panel('indices', 'Whole-mouth indices')}>
-            <Indices chart={state.chart} />
-          </Panel>
-
-          <Panel {...panel('findings', 'Findings', `${findingCount} items`)}>
-            <Findings chart={state.chart} numbering={state.meta.numbering} dispatch={dispatch} />
-          </Panel>
-        </aside>
-        )}
       </div>
+
+      {!panelsOpen && (
+        <>
+          <div className="railstrip">
+            <RailStrip onExpand={pin} />
+          </div>
+
+          {/* Hover the edge and the panel slides out; it pins on a click. */}
+          <div
+            className="peekzone left"
+            onMouseEnter={() => setPeek('left')}
+            onMouseLeave={() => setPeek(null)}
+          >
+            <div className={`peekpanel left${peek === 'left' ? ' in' : ''}`} onClick={pin}>
+              <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setPeek(null)} />
+              {leftRail}
+              <p className="peekhint">Click anywhere here to keep the panels open</p>
+            </div>
+          </div>
+
+          <div
+            className="peekzone right"
+            onMouseEnter={() => setPeek('right')}
+            onMouseLeave={() => setPeek(null)}
+          >
+            <div className={`peekpanel right${peek === 'right' ? ' in' : ''}`} onClick={pin}>
+              {rightRail}
+              <p className="peekhint">Click anywhere here to keep the panels open</p>
+            </div>
+          </div>
+        </>
+      )}
 
       {voiceDialog && (
         <VoiceDialog id={voiceDialog} state={state} dispatch={dispatch} voice={voice} onClose={() => setVoiceDialog(null)} />

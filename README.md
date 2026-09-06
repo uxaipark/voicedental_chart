@@ -137,6 +137,14 @@ dependency. Chrome's default path streams audio to its servers, so
 with the model's install state; for a chart holding patient data that choice
 belongs in front of the clinician rather than in a default.
 
+## The side panels
+
+The icon beside the Chart / Record tabs folds both flanks away and centres the
+chart. Folded, the edges of the window are live: hovering either one slides
+that panel back over the chart for as long as the cursor stays on it, and
+clicking it pins the layout open again. A 30 px sliver keeps the fold control
+where it was, so the panels come back from where they went.
+
 ## Checking the layout at other sizes
 
 **Dev ▸ Form factor** renders the whole app at a chosen viewport — FHD, 4K at
