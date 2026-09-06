@@ -12,6 +12,9 @@
   --shadow:0 1px 2px rgba(15,23,32,.06),0 6px 18px rgba(15,23,32,.05);
   --cw:18px; --gut:124px; --gap:22px;
   --rail-l:232px; --rail-r:292px; --main-gap:14px;
+  /* The arch decides the chart's width: gutter + 48 site columns + the midline. */
+  --arch-w:calc(var(--gut) + 48 * var(--cw) + var(--gap));
+  --chart-card:calc(var(--arch-w) + 26px);   /* card body padding + borders */
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -76,12 +79,14 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
    the panel had, so the centre column measures the same either way. */
 .main{
   display:grid;
-  grid-template-columns:var(--rail-l) minmax(0,1fr) var(--rail-r);
+  /* The chart column is sized by the chart, not by the window; the slack
+     collects in a trailing track instead of stretching the card. */
+  grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) var(--rail-r) minmax(0,1fr);
   gap:var(--main-gap);padding:14px 18px 8px;align-items:start;
 }
 @media (max-width:1560px){
   :root{--rail-l:220px}
-  .main{grid-template-columns:var(--rail-l) minmax(0,1fr)}
+  .main{grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) minmax(0,1fr)}
   .rail-r{grid-column:1/-1}
 }
 @media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.rail-l,.rail-r{grid-column:auto}}
@@ -117,7 +122,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 
 /* ---------- chart ---------- */
 .chartwrap{overflow-x:auto;padding:2px 0 8px}
-.chart{width:max-content;min-width:100%}
+.chart{width:var(--arch-w)}
 .chart:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 .bandlabel{display:flex;align-items:center;gap:9px;margin:12px 0 4px;padding-left:2px}
 .bandlabel .rail{width:3px;height:13px;border-radius:2px;background:var(--accent)}
@@ -326,7 +331,7 @@ body { margin: 0; }
 .tm-head{display:flex;align-items:center;gap:9px}
 .tm-head .rail{width:3px;height:13px;border-radius:2px;background:var(--accent);flex:none}
 .tm-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2)}
-.tm-sub{font-size:10.5px;color:var(--ink-3)}
+.tm-sub{font-size:10.5px;color:var(--ink-3);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tm-count{margin-left:auto;font-size:13px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
 .tm-count em{font-style:normal;font-size:11px;color:var(--ink-3);margin-left:1px}
 
