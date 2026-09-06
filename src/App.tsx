@@ -19,7 +19,7 @@ import { DevFrame, FORM_FACTORS } from './components/DevFrame'
 import type { VoiceDialogId } from './components/VoiceDialogs'
 import { useVoice } from './state/useVoice'
 import { DataDictionary } from './components/DataDictionary'
-import { ExamHistory, Legend, PatientBrief, PatientCard, RailSwitch } from './components/SidePanels'
+import { ExamHistory, Legend, PatientBrief, PatientCard, RailStrip, RailSwitch } from './components/SidePanels'
 import { ProviderCard } from './components/ProviderCard'
 
 function ChartStub({ view, onBack }: { view: 'implant' | 'restorative'; onBack: () => void }) {
@@ -46,6 +46,7 @@ function ChartStub({ view, onBack }: { view: 'implant' | 'restorative'; onBack: 
 export default function App() {
   const [state, dispatch] = useReducer(reducer, undefined, initialState)
   const [railView, setRailView] = useState<'clinical' | 'record'>('clinical')
+  const [railOpen, setRailOpen] = useState(true)
   // One exam per patient per day; the key is what a reopened tab recovers by.
   const examKey = `1023-44871|${state.meta.date}`
   const { save, saveExam, filed } = usePersistence(state, dispatch, examKey)
@@ -89,9 +90,11 @@ export default function App() {
         onFormFactor={setFormFactor}
       />
 
-      <div className="main">
+      <div className={`main${railOpen ? '' : ' rail-min'}`}>
+        {!railOpen && <RailStrip onExpand={() => setRailOpen(true)} />}
+        {railOpen && (
         <aside className="rail-l">
-          <RailSwitch value={railView} onChange={setRailView} />
+          <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setRailOpen(false)} />
           {railView === 'clinical' ? (
             <>
               <Panel {...panel('provider', 'Provider', meta.provider.replace(/^(RDH|Dr\.)\s/, ''))}>
@@ -117,6 +120,7 @@ export default function App() {
             </>
           )}
         </aside>
+        )}
 
         {state.activeChart === 'perio' ? (
           <section className="card">

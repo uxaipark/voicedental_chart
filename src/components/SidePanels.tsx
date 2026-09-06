@@ -5,25 +5,50 @@ import type { ReactNode } from 'react'
  * rather than only the current one — a single-label toggle never says whether
  * the word on it is where you are or where you would go.
  */
-export function RailSwitch({ value, onChange }: { value: 'clinical' | 'record'; onChange: (v: 'clinical' | 'record') => void }) {
+export function RailSwitch({
+  value, onChange, onCollapse,
+}: {
+  value: 'clinical' | 'record'
+  onChange: (v: 'clinical' | 'record') => void
+  onCollapse: () => void
+}) {
   const TABS: Array<{ id: 'clinical' | 'record'; label: string; hint: string }> = [
     { id: 'clinical', label: 'Chart', hint: 'Patient details, legend and past exams' },
     { id: 'record', label: 'Record', hint: 'Patient summary and the edit history' },
   ]
   return (
-    <div className="railswitch" role="tablist" aria-label="Left panel">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          role="tab"
-          aria-selected={value === t.id}
-          title={t.hint}
-          onClick={() => onChange(t.id)}
-        >
-          {t.label}
-        </button>
-      ))}
+    <div className="railhead">
+      <button className="railfold" onClick={onCollapse} title="Collapse this panel" aria-label="Collapse the left panel">
+        <PanelIcon open />
+      </button>
+      <div className="railswitch" role="tablist" aria-label="Left panel">
+        {TABS.map((t) => (
+          <button key={t.id} role="tab" aria-selected={value === t.id} title={t.hint} onClick={() => onChange(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
     </div>
+  )
+}
+
+function PanelIcon({ open }: { open: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="1.4" y="2.6" width="13.2" height="10.8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+      <rect x="1.4" y="2.6" width="4.6" height="10.8" rx="2" fill="currentColor" opacity={open ? 0.85 : 0.3} />
+    </svg>
+  )
+}
+
+/** The sliver left behind, so the panel can be brought back. */
+export function RailStrip({ onExpand }: { onExpand: () => void }) {
+  return (
+    <aside className="railstrip">
+      <button className="railfold" onClick={onExpand} title="Show the patient panel" aria-label="Show the left panel">
+        <PanelIcon open={false} />
+      </button>
+    </aside>
   )
 }
 
