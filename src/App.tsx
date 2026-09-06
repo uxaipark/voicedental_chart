@@ -16,10 +16,11 @@ import { SessionLog } from './components/SessionLog'
 import { Dictation } from './components/Dictation'
 import { VoiceDialog } from './components/VoiceDialogs'
 import { DevFrame, FORM_FACTORS } from './components/DevFrame'
+import { MIN_CHART_W, ViewportGate } from './components/ViewportGate'
 import type { VoiceDialogId } from './components/VoiceDialogs'
 import { useVoice } from './state/useVoice'
 import { DataDictionary } from './components/DataDictionary'
-import { ExamHistory, Legend, PatientBrief, PatientCard, RailStrip, RailSwitch } from './components/SidePanels'
+import { ExamHistory, FoldButton, Legend, PatientBrief, PatientCard, RailSwitch } from './components/SidePanels'
 import { ProviderCard } from './components/ProviderCard'
 
 function ChartStub({ view, onBack }: { view: 'implant' | 'restorative'; onBack: () => void }) {
@@ -48,7 +49,24 @@ export default function App() {
   const [railView, setRailView] = useState<'clinical' | 'record'>('clinical')
   const [panelsOpen, setPanelsOpen] = useState(true)
   const [peek, setPeek] = useState<'left' | 'right' | null>(null)
+  const [formFactor, setFormFactor] = useState<string | null>(null)
   const barRef = useRef<HTMLDivElement>(null)
+  const shellRef = useRef<HTMLDivElement>(null)
+  const [shellW, setShellW] = useState(Number.POSITIVE_INFINITY)
+  const [ignoreWidth, setIgnoreWidth] = useState(false)
+
+  // Measured from the shell rather than the window, so a form-factor preview is
+  // held to the same requirement as a real screen of that size. contentRect is
+  // the untransformed box, which is the CSS width the layout actually sees —
+  // getBoundingClientRect would return the preview's scaled-down size instead.
+  useLayoutEffect(() => {
+    const el = shellRef.current
+    if (!el) return
+    const ro = new ResizeObserver(([entry]) => setShellW(Math.round(entry.contentRect.width)))
+    ro.observe(el)
+    setShellW(Math.round(el.clientWidth))
+    return () => ro.disconnect()
+  }, [formFactor])
 
   // The peeking panels hang below the top bar, whose height depends on how the
   // menu wraps, so it is measured rather than assumed.
@@ -68,7 +86,6 @@ export default function App() {
   const { save, saveExam, filed } = usePersistence(state, dispatch, examKey)
   const voice = useVoice(state, dispatch)
   const [voiceDialog, setVoiceDialog] = useState<VoiceDialogId | null>(null)
-  const [formFactor, setFormFactor] = useState<string | null>(null)
   const meta = state.meta
   const findingCount = useMemo(() => collectFindings(state.chart).length, [state.chart])
   // Panels default to open; only what the clinician folded is stored.
@@ -138,7 +155,10 @@ export default function App() {
   const pin = () => { setPanelsOpen(true); setPeek(null) }
 
   const app = (
-    <>
+    <div className="appshell" ref={shellRef}>
+      {shellW < MIN_CHART_W && !ignoreWidth && (
+        <ViewportGate width={shellW} onOverride={() => setIgnoreWidth(true)} />
+      )}
       <div ref={barRef}>
       <TopBar
         state={state}
@@ -153,10 +173,12 @@ export default function App() {
       />
       </div>
 
+      <FoldButton open={panelsOpen} onToggle={() => { setPanelsOpen((v) => !v); setPeek(null) }} />
+
       <div className={`main${panelsOpen ? '' : ' rail-min'}`}>
         {panelsOpen && (
         <aside className="rail-l">
-          <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setPanelsOpen(false)} />
+          <RailSwitch value={railView} onChange={setRailView} />
           {leftRail}
         </aside>
         )}
@@ -181,10 +203,6 @@ export default function App() {
 
       {!panelsOpen && (
         <>
-          <div className="railstrip">
-            <RailStrip onExpand={pin} />
-          </div>
-
           {/* Hover the edge and the panel slides out; it pins on a click. */}
           <div
             className="peekzone left"
@@ -192,7 +210,7 @@ export default function App() {
             onMouseLeave={() => setPeek(null)}
           >
             <div className={`peekpanel left${peek === 'left' ? ' in' : ''}`} onClick={pin}>
-              <RailSwitch value={railView} onChange={setRailView} onCollapse={() => setPeek(null)} />
+              <RailSwitch value={railView} onChange={setRailView} />
               {leftRail}
               <p className="peekhint">Click anywhere here to keep the panels open</p>
             </div>
@@ -225,7 +243,7 @@ export default function App() {
         <a href="https://www.periodontalchart-online.com/?lang=en-gb">periodontalchart-online</a>, and the AAP/EFP 2017
         classification.
       </p>
-    </>
+    </div>
   )
 
   const factor = FORM_FACTORS.find((f) => f.id === formFactor)

@@ -6,11 +6,10 @@ import type { ReactNode } from 'react'
  * the word on it is where you are or where you would go.
  */
 export function RailSwitch({
-  value, onChange, onCollapse,
+  value, onChange,
 }: {
   value: 'clinical' | 'record'
   onChange: (v: 'clinical' | 'record') => void
-  onCollapse: () => void
 }) {
   const TABS: Array<{ id: 'clinical' | 'record'; label: string; hint: string }> = [
     { id: 'clinical', label: 'Chart', hint: 'Patient details, legend and past exams' },
@@ -18,14 +17,6 @@ export function RailSwitch({
   ]
   return (
     <div className="railhead">
-      <button
-        className="railfold"
-        onClick={onCollapse}
-        title="Collapse both panels — chart only"
-        aria-label="Collapse both side panels"
-      >
-        <PanelIcon open />
-      </button>
       <div className="railswitch" role="tablist" aria-label="Left panel">
         {TABS.map((t) => (
           <button key={t.id} role="tab" aria-selected={value === t.id} title={t.hint} onClick={() => onChange(t.id)}>
@@ -37,25 +28,26 @@ export function RailSwitch({
   )
 }
 
-/** Both flanks, because the control folds both away. */
-function PanelIcon({ open }: { open: boolean }) {
+/**
+ * One button, always in the same fixed spot. Folding the panels changes what is
+ * beside it, never where it is — two buttons in two layouts could not promise
+ * that, however carefully their boxes were matched.
+ */
+export function FoldButton({ open, onToggle }: { open: boolean; onToggle: () => void }) {
   return (
-    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
-      <rect x="1.4" y="2.6" width="13.2" height="10.8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.3" />
-      <rect x="1.4" y="2.6" width="3.6" height="10.8" rx="2" fill="currentColor" opacity={open ? 0.85 : 0.28} />
-      <rect x="11" y="2.6" width="3.6" height="10.8" rx="2" fill="currentColor" opacity={open ? 0.85 : 0.28} />
-    </svg>
-  )
-}
-
-/** The sliver left behind, so the panels can be brought back from where they went. */
-export function RailStrip({ onExpand }: { onExpand: () => void }) {
-  return (
-    <aside className="railstrip">
-      <button className="railfold" onClick={onExpand} title="Show both panels" aria-label="Show both side panels">
-        <PanelIcon open={false} />
-      </button>
-    </aside>
+    <button
+      className="railfold"
+      onClick={onToggle}
+      aria-pressed={!open}
+      title={open ? 'Collapse both panels — chart only' : 'Show both panels'}
+      aria-label={open ? 'Collapse both side panels' : 'Show both side panels'}
+    >
+      <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1.4" y="2.6" width="13.2" height="10.8" rx="2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+        <rect x="1.4" y="2.6" width="3.6" height="10.8" rx="2" fill="currentColor" opacity={open ? 0.85 : 0.28} />
+        <rect x="11" y="2.6" width="3.6" height="10.8" rx="2" fill="currentColor" opacity={open ? 0.85 : 0.28} />
+      </svg>
+    </button>
   )
 }
 

@@ -140,10 +140,16 @@ belongs in front of the clinician rather than in a default.
 ## The side panels
 
 The icon beside the Chart / Record tabs folds both flanks away and centres the
-chart. Folded, the edges of the window are live: hovering either one slides
-that panel back over the chart for as long as the cursor stays on it, and
-clicking it pins the layout open again. A 30 px sliver keeps the fold control
-where it was, so the panels come back from where they went.
+chart. It is one fixed button rather than one per state, so folding changes
+what is beside it and never where it is. Folded, the edges of the window are
+live: hovering either one slides that panel back over the chart for as long as
+the cursor stays on it, and clicking it pins the layout open again.
+
+The chart column is the arch's width and does not move — it neither stretches
+into spare room nor squeezes when there is none. Six sites on 32 teeth cannot
+be read off a compressed grid, so when the window is below what the layout
+needs the app says so and gives the number, instead of quietly shrinking into
+something that invites the wrong tooth getting the reading.
 
 ## Checking the layout at other sizes
 

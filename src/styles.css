@@ -11,7 +11,7 @@
   --implant:#9AA4B0;
   --shadow:0 1px 2px rgba(15,23,32,.06),0 6px 18px rgba(15,23,32,.05);
   --cw:18px; --gut:124px; --gap:22px;
-  --rail-l:232px; --rail-r:292px; --main-gap:14px; --rail-min:30px;
+  --rail-l:232px; --rail-r:292px; --main-gap:14px; --rail-min:30px; --page-pad:18px; --fold-size:34px;
   --vph:100vh;   /* the frame overrides this when previewing a form factor */
   /* The arch decides the chart's width: gutter + 48 site columns + the midline. */
   --arch-w:calc(var(--gut) + 48 * var(--cw) + var(--gap));
@@ -80,23 +80,30 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
    the panel had, so the centre column measures the same either way. */
 .main{
   display:grid;
-  /* The chart column is sized by the chart, not by the window; the slack
-     collects in a trailing track instead of stretching the card. */
-  grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) var(--rail-r) minmax(0,1fr);
-  gap:var(--main-gap);padding:14px 18px 8px;align-items:start;
+  /* The chart column is the arch's width, full stop — it neither stretches
+     into spare room nor squeezes when there is none. Below that width the page
+     scrolls sideways rather than the chart being cut down. */
+  grid-template-columns:var(--rail-l) var(--chart-card) var(--rail-r) minmax(0,1fr);
+  gap:var(--main-gap);padding:14px var(--page-pad) 8px;align-items:start;
 }
 /* Folded, the chart sits in the middle of the window; the sliver and the
    peeking panels float over it rather than taking a column. */
-.main.rail-min{grid-template-columns:minmax(0,1fr) minmax(0,var(--chart-card)) minmax(0,1fr)}
+.main.rail-min{grid-template-columns:minmax(0,1fr) var(--chart-card) minmax(0,1fr)}
 .main.rail-min > *{grid-column:2}
 @media (max-width:1560px){
   :root{--rail-l:220px}
-  .main{grid-template-columns:var(--rail-l) minmax(0,var(--chart-card)) minmax(0,1fr)}
-  .main.rail-min{grid-template-columns:minmax(0,1fr) minmax(0,var(--chart-card)) minmax(0,1fr)}
+  .main{grid-template-columns:var(--rail-l) var(--chart-card) minmax(0,1fr)}
+  .main.rail-min{grid-template-columns:minmax(0,1fr) var(--chart-card) minmax(0,1fr)}
   .main.rail-min > *{grid-column:2}
   .rail-r{grid-column:1/-1}
 }
-@media (max-width:1100px){.main{grid-template-columns:minmax(0,1fr)}.rail-l,.rail-r{grid-column:auto}}
+/* Below this the gate has already said the window is too narrow; if it was
+   overridden the chart still keeps its width and the page scrolls. */
+@media (max-width:1100px){
+  .main,.main.rail-min{grid-template-columns:var(--chart-card)}
+  .main.rail-min > *{grid-column:auto}
+  .rail-l,.rail-r{grid-column:auto}
+}
 
 .railtoggle:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 
@@ -128,7 +135,7 @@ select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .hist .who{margin-left:auto;color:var(--ink-3);font-size:10.5px}
 
 /* ---------- chart ---------- */
-.chartwrap{overflow-x:auto;padding:2px 0 8px}
+.chartwrap{padding:2px 0 8px}
 .chart{width:var(--arch-w)}
 .chart:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
 .bandlabel{display:flex;align-items:center;gap:9px;margin:12px 0 4px;padding-left:2px}
@@ -481,27 +488,29 @@ body { margin: 0; }
 .card-b.stub .note{margin:0}
 
 /* ---------- left panel switch ---------- */
-.railhead{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+/* The gap on the left is where the fixed fold button sits. */
+.railhead{display:flex;align-items:center;margin-bottom:12px;padding-left:calc(var(--fold-size) + 6px)}
+/* The switch and the fold control are the same height, so the icon's top edge
+   is the rail's top edge and it does not shift when the panels fold away. */
 .railswitch{
-  flex:1;min-width:0;
+  flex:1;min-width:0;height:var(--fold-size);
   display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:3px;
   border:1px solid var(--line);border-radius:8px;background:var(--surface-3);
 }
 .railfold{
-  display:flex;align-items:center;justify-content:center;flex:none;
-  width:28px;height:28px;padding:0;border-radius:7px;cursor:pointer;
-  border:1px solid var(--line);background:var(--surface-3);color:var(--ink-3);
+  display:flex;align-items:center;justify-content:center;
+  width:var(--fold-size);height:var(--fold-size);padding:0;border-radius:7px;cursor:pointer;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);
 }
 .railfold:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent-ink)}
 .railfold:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-/* The sliver floats at the left edge so it costs the layout nothing. */
-.railstrip{
-  position:fixed;left:8px;top:calc(var(--topbar-h,50px) + 14px);z-index:40;
-  display:flex;justify-content:center;
+/* Fixed, and above the peeking panels so it is never covered. */
+.railfold{
+  position:fixed;left:var(--page-pad);top:calc(var(--topbar-h,50px) + 14px);z-index:80;
 }
 .railswitch button{
   border:0;border-radius:6px;background:transparent;cursor:pointer;
-  padding:6px 0;font-size:12px;font-weight:500;color:var(--ink-2);
+  padding:0;font-size:12px;font-weight:500;color:var(--ink-2);
 }
 .railswitch button:hover{color:var(--ink)}
 .railswitch button[aria-selected="true"]{
@@ -671,14 +680,14 @@ input.wide{width:100%;margin-top:4px}
 
 .peekpanel{
   position:absolute;top:0;bottom:0;
-  padding:14px 12px 18px;overflow-y:auto;overscroll-behavior:contain;
+  padding:14px var(--page-pad) 18px;overflow-y:auto;overscroll-behavior:contain;
   background:var(--surface-2);border:1px solid var(--line-2);
   box-shadow:0 8px 30px rgba(15,23,32,.18);
   pointer-events:none;
   transition:transform .18s cubic-bezier(.2,.7,.3,1);
 }
-.peekpanel.left{left:0;width:calc(var(--rail-l) + 24px);border-left:0;border-radius:0 10px 10px 0;transform:translateX(-101%)}
-.peekpanel.right{right:0;width:calc(var(--rail-r) + 24px);border-right:0;border-radius:10px 0 0 10px;transform:translateX(101%)}
+.peekpanel.left{left:0;width:calc(var(--rail-l) + var(--page-pad) * 2);border-left:0;border-radius:0 10px 10px 0;transform:translateX(-101%)}
+.peekpanel.right{right:0;width:calc(var(--rail-r) + var(--page-pad) * 2);border-right:0;border-radius:10px 0 0 10px;transform:translateX(101%)}
 .peekpanel.left.in,.peekpanel.right.in{transform:translateX(0)}
 .peekpanel.in{pointer-events:auto;cursor:pointer}
 .peekpanel .card{cursor:default}
@@ -697,3 +706,28 @@ input.wide{width:100%;margin-top:4px}
 .peekzone.right::before{right:3px}
 .peekzone:hover::before{background:var(--accent);opacity:1}
 @media (prefers-reduced-motion:reduce){.peekpanel{transition:none}}
+
+/* ---------- minimum width gate ---------- */
+.appshell{display:block}
+.gate{
+  position:fixed;inset:0;z-index:400;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  background:color-mix(in srgb,var(--ground) 92%,transparent);
+  backdrop-filter:blur(3px);
+}
+.gatecard{
+  width:min(460px,100%);padding:22px 24px 24px;border-radius:12px;
+  background:var(--surface);border:1px solid var(--line-2);box-shadow:var(--shadow);
+}
+.gatecard .eyebrow{color:var(--crit)}
+.gatecard h2{margin:6px 0 8px;font-size:19px;font-weight:600;letter-spacing:-.01em}
+.gatecard p{margin:0 0 12px;font-size:12.5px;line-height:1.6;color:var(--ink-2)}
+.gatespec{
+  display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 14px;
+  padding:12px 14px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);
+}
+.gatespec dt{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);align-self:center}
+.gatespec dd{margin:0;text-align:right;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.gatespec dd.bad{color:var(--crit)}
+.gatespec dd em{display:block;font-style:normal;font-size:10px;font-weight:400;color:var(--ink-3);margin-top:1px}
+.gatecard .note{margin-bottom:14px}
